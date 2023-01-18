@@ -8,12 +8,11 @@ There are several options:
 * Move to trash - The page will be moved directly to the trash after the page was unpublished
 * Delete permanently - The page will be deleted directly without moving it to the thrash before
 * Move the page to a new parent - This could be useful if you want to move the page fe to an archive. In this case, the
-page will only be moved to a new position inside the page tree, but will not be unpublished, so it could still be 
-displayed
+page is only moved to a new position within the page tree, but remains published so that it can still be viewed
 
 This module creates new input fields for entering dates and to select what should happen after the publishing end date
-has been reached. These fields can be added with one click to templates. There is no need to add these fields to each
-desired template manually.
+has been reached. These fields can be added with one click to templates. These fields do not have to be added manually
+to each template.
 
 ## Module configuration fields
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/configuration.png?v=1)
@@ -23,27 +22,29 @@ Afterwards is a list of checkboxes. Each checkbox represents a frontend template
 If the checkbox of a certain template is checked, then the publishing fields will be added automatically to this template
 after saving the module configuration.
 On the opposite, the publishing fields will be removed from all templates where the checkbox is unchecked.
-So there is no longer the need to add or remove the publishing fields manually to/from each template.
+So there is no the need to add or remove the publishing fields manually to/from each template.
 
-To enable/disable all checkboxes at once, you can use the toggle link above the checkboxes. This makes it much more
-comfortable.
+To enable/disable all checkboxes at once, you can use the toggle link (Un/check all) above the checkboxes. This makes it much more
+comfortable to add the fields to several templates.
 
 
 ## Template view
 
-Every template that is selected in the module configuration has the following fields to set the publishing options.
+Every template that is selected in the module configuration includes the following fields where the publishing options
+can be set.
+
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/default-page-fields.png)
 
-If a publish end date was set, an additional field will appear. In this case, you can select what should happen after the
-publish end date has been reached.
+If a publication end date has been set, an additional field is displayed. In this case, you can choose what to do after
+the publication end date is reached.
+
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/action.png)
 
-If you have selected the action to move the page to a new parent a further field appear, where you can select the new
-parent page.
+Once you have selected the action to move the page to a new parent page, another box will appear where you can select
+the new parent page.
+
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/move.png)
 
-
-This is what it looks like inside the template of a page.
 
 ## Usage
 Entering values inside the 2 date fields is optional.
@@ -63,34 +64,37 @@ configuration page and make your changes there.
 But be aware: If you are using the language file of this module, this will overwrite all manual changes of the language
 values.
 
-As an addition, you can decide afterwards what should happen with this page. You can set that the page should be deleted
-permanently, should be moved to trash or should be moved to another position inside the page tree.
+As written in the introduction, you can decide what should happen with this page after the publication end date is
+reached.
 
-If you want to move the page to be a child of another page, you can only select pages as parent, which are allowed to be 
-a parent according to your settings.
+Most options are self-explanatory, so I only want to focus on the option moving the page to a new parent and explain
+this a little bit more in detail.
 
 Explanation: 
 You have some setting possibilities inside your template configuration to set which templates are allowed to be a parent
 or which templates are allowed to be a child template. In addition, you can decide, whether a given template can have
 children or not.
 All these settings have an impact on the select drop-down input field. This means that only pages can be selected to be
-a new parent page for the current page, that is allowed to be a parent page (depending on your settings).
+a new parent page for the current page, that are allowed to be a parent page (depending on your settings).
 
-In other words, the values of the select field displayed are dynamically and can differ from page to page. You do not
-have to take care of it - it all runs behind the scenes. 
+In other words, the values of the select field displayed are dynamically and can differ from page to page (or template
+to template). You do not have to take care of it - it all runs behind the scenes. 
 
-Only one thing to mention in this case: If you change your template settings later on, and you have chosen a
+But there is one thing to mention in this case: If you change your template settings later on, and you have chosen a
 parent page which will no longer be allowed to be a parent page, the movement will not take place.
-So be aware of changing template settings later on - in this case you have to change the parent page manually on all of
-your pages.
+So be aware of changing template settings later on - in this case you have to check all your pages manually if the
+change will affect the page or not.
+But this is a very rare scenario, because the template settings will be done at the beginning and will not be changed
+later on.
 
 ## Multi-language
 
 This module will be shipped with the German translation file. You will need ProcessWire 3.0.195 or higher to import 
-these translations. The reason is that the processCSV method has to be hookable and this is only possible since the 
-3.0.195 version of ProcessWire.
-This Hook method will take care that the newly created fields will also be translated after importing the language files.
-If your version is lower, you have to add the translations for these fields manually.
+these translations to the created input fields too. The reason is that the processCSV method has to be hookable and this
+is only possible since the 3.0.195 version of ProcessWire.
+This Hook method will take care that the newly created fields will also be translated with one click after importing the
+language files.
+If your version is lower this module should also work, but you have to add the translations for these fields manually.
 
 ## How to install
 
@@ -99,11 +103,10 @@ If your version is lower, you have to add the translations for these fields manu
 
 2. In the admin control panel, refresh all your modules.
 
-3. Now scroll to the PublishingOptions module and click "Install". The required input fields and the fieldset will be 
+3. Find this module and click "Install". The module will be installed and the required input fields will be 
 created automatically.
 
-4. After the module has been installed, go to the module configuration and choose the templates where you want to add 
-the publishing fields by checking the appropriate checkboxes in the module configuration and click the save button.
+4. After the module has been installed, you can make your settings.
 
 ## How to uninstall
 
