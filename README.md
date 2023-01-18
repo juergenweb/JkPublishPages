@@ -42,7 +42,7 @@ the publication end date is reached.
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/action.png)
 
-Once you have selected the action to move the page to a new parent page, another box will appear where you can select
+If you have selected the action to move the page to a new parent page, another box will appear where you can select
 the new parent page.
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/move.png)
