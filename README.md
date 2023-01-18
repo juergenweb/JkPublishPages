@@ -37,7 +37,7 @@ Every template which was selected to use the publishing options includes the fol
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/default-page-fields.png)
 
-If a publication end date has been set, an additional field is displayed. In this case, you can choose what to do after
+If a publication end date has been set, an additional field will be displayed below. In this case, you can choose what to do after
 the publication end date is reached.
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/action.png)
