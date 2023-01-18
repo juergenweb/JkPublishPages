@@ -33,8 +33,7 @@ comfortable to add the fields to several templates.
 
 ## Template view
 
-Every template that is selected in the module configuration includes the following fields where the publishing options
-can be set.
+Every template which was selected to use the publishing options includes the following fields:
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/default-page-fields.png)
 
