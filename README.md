@@ -1,7 +1,9 @@
 # JkPublishPages - ProcessWire module to publish and unpublish pages depending on dates
 
 This module is intended to schedule pages depending on publishing date and times.
+You can determine when a page is published or unpublished again by setting start and end date.
 After the publishing end date has been reached, you can decide what should happen with this page.
+
 There are several options:
 
 * No, action - The page is just set to unpublished
