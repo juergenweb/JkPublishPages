@@ -26,7 +26,8 @@ after saving the module configuration.
 On the opposite, the publishing fields will be removed from all templates where the checkbox is unchecked.
 So there is no the need to add or remove the publishing fields manually to/from each template.
 
-To enable/disable all checkboxes at once, you can use the toggle link (Un/check all) above the checkboxes. This makes it much more
+To enable/disable all checkboxes at once, you can use the toggle link (Un/check all) above the checkboxes. A little
+JavaScript allows to toggle the checking/unchecking of all checkboxes at once. This makes it much more easier and 
 comfortable to add the fields to several templates.
 
 
