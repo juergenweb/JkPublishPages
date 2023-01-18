@@ -27,7 +27,7 @@ On the opposite, the publishing fields will be removed from all templates where 
 So there is no the need to add or remove the publishing fields manually to/from each template.
 
 To enable/disable all checkboxes at once, you can use the toggle link (Un/check all) above the checkboxes. A little
-JavaScript allows to toggle the checking/unchecking of all checkboxes at once. This makes it much more easier and 
+JavaScript allows to toggle the checking/unchecking of all checkboxes at once. This makes it much easier and 
 comfortable to add the fields to several templates.
 
 
@@ -70,7 +70,7 @@ As written in the introduction, you can decide what should happen with this page
 reached.
 
 Most options are self-explanatory, so I only want to focus on the option moving the page to a new parent and explain
-this a little bit more in detail.
+this a little more in detail.
 
 Explanation: 
 You have some setting possibilities inside your template configuration to set which templates are allowed to be a parent
