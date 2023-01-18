@@ -5,19 +5,19 @@ This module is intended to schedule pages depending on publishing date and times
 After the publishing end date has been reached, you can decide what should happen with this page.
 There are several options:
 
-* No, action - The page will only be set to unpublished
+* No, action - The page is just set to unpublished
 * Move to trash - The page will be moved directly to the trash after the page was unpublished
 * Delete permanently - The page will be deleted directly without moving it to the thrash before
-* Move the page to a new parent - This could be useful if you want to move the page fe to an archive. In this case the
+* Move the page to a new parent - This could be useful if you want to move the page fe to an archive. In this case, the
 page will only be moved to a new position inside the page tree, but will not be unpublished, so it could still be 
 displayed
 
 This module creates new input fields for entering dates and to select what should happen after the publishing end date
-has been reached. These fields can be added with on click to templates. There is no need to add these fields to each
+has been reached. These fields can be added with one click to templates. There is no need to add these fields to each
 desired template manually.
 
 ## Module configuration fields
-![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/imagesconfiguration.png?v=1)
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/configuration.png?v=1)
 
 As you can see, you have a select input with all LazyCron time intervals - default is 1 hour.
 Afterwards is a list of checkboxes. Each checkbox represents a frontend template where you can add the publishing fields.
@@ -35,7 +35,7 @@ comfortable.
 Every template that is selected in the module configuration has the following fields to set the publishing options.
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/default-page-fields.png)
 
-If a publish end date was set, an additional field will appear. In this you can select what should happen after the
+If a publish end date was set, an additional field will appear. In this case, you can select what should happen after the
 publish end date has been reached.
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/action.png)
 
@@ -64,7 +64,7 @@ configuration page and make your changes there.
 But be aware: If you are using the language file of this module, this will overwrite all manual changes of the language
 values.
 
-As an addition you can decide afterwards what should happen with this page. You can set that the page should be deleted
+As an addition, you can decide afterwards what should happen with this page. You can set that the page should be deleted
 permanently, should be moved to trash or should be moved to another position inside the page tree.
 
 If you want to move the page to be a child of another page, you can only select pages as parent, which are allowed to be 
@@ -72,10 +72,10 @@ a parent according to your settings.
 
 Explanation: 
 You have some setting possibilities inside your template configuration to set which templates are allowed to be a parent
-or which templates are allowed to be a child template. In addition you can decide, whether a given template can have
+or which templates are allowed to be a child template. In addition, you can decide, whether a given template can have
 children or not.
-All these settings have an impact on the select drop down input field. This means that only pages can be selected to be
-a new parent page for the current page, that are allowed to be a parent page (depending on your settings).
+All these settings have an impact on the select drop-down input field. This means that only pages can be selected to be
+a new parent page for the current page, that is allowed to be a parent page (depending on your settings).
 
 In other words, the values of the select field displayed are dynamically and can differ from page to page. You do not
 have to take care of it - it all runs behind the scenes. 
@@ -98,7 +98,7 @@ If your version is lower, you have to add the translations for these fields manu
 1. Download and place the module folder named "JkPublishPages" in:
 /site/modules/
 
-2. In the admin control panel refresh all your modules.
+2. In the admin control panel, refresh all your modules.
 
 3. Now scroll to the PublishingOptions module and click "Install". The required input fields and the fieldset will be 
 created automatically.
