@@ -112,5 +112,5 @@ created automatically.
 
 ## How to uninstall
 
-Go to the module configuration and check checkbox for uninstallation. All fields of this module will be removed from 
+Go to the module configuration and check the checkbox for uninstallation. All fields of this module will be removed from 
 every template and will be deleted from the database afterwards.
