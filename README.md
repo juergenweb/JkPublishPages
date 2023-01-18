@@ -16,7 +16,7 @@ This module creates new input fields for entering dates and to select what shoul
 has been reached. These fields can be added with one click to templates. These fields do not have to be added manually
 to each template.
 
-## Module configuration fields
+## Module configuration
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/configuration.png?v=1)
 
 As you can see, you have a select input with all LazyCron time intervals - default is 1 hour.
