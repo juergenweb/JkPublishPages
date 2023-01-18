@@ -1,0 +1,29 @@
+en,de,description,file,hash
+"No action",Nichts,,site/modules/JkPublishPages/JkPublishPages.module,fa46ea6f6f6623fdd7039b5f1a8f3940
+"Move page to trash","Seite in den Mülleimer verschieben",,site/modules/JkPublishPages/JkPublishPages.module,7abd7277f9a10193f5586acbe6eb428f
+"Move page as a child of another page","Seite unterhalb eine andere Seite verschieben",,site/modules/JkPublishPages/JkPublishPages.module,0a799a1d0fa08efbe84aa4fc51ead413
+"Delete page permanently","Seite dauerhaft löschen",,site/modules/JkPublishPages/JkPublishPages.module,95ed993384ff8861b2c4493878dc041e
+"Un/check all","Alle markieren/leeren",,site/modules/JkPublishPages/JkPublishPages.module,d6dc9d4a5a6ad2541a3fd0372484f2e9
+"Publish until date must be after publish from date.","Das Veröffentlichungsenddatum muss nach dem Veröffentlichungstartsdatum liegen.",,site/modules/JkPublishPages/JkPublishPages.module,b619cc9fe8a83660b592d8dabb93e0bb
+"Every 30 seconds","Alle 30 Sekunden",,site/modules/JkPublishPages/JkPublishPages.module,9f600621e6189e66c7b80aee8153741f
+"Every minute","Jede Minute",,site/modules/JkPublishPages/JkPublishPages.module,5f86190bddaffe634153c40721b41544
+"Every %s minutes","Alle %s Minuten",,site/modules/JkPublishPages/JkPublishPages.module,643bd9766a482fed97aff60a7a4f1b3b
+"Every hour","Jede Stunde",,site/modules/JkPublishPages/JkPublishPages.module,02fd27d2951d00b83f111f63611ea863
+"Every %s hours","Alle %s Stunden",,site/modules/JkPublishPages/JkPublishPages.module,328310001266fb48df9ecb2de2a16b95
+"Every day","Jeden Tag",,site/modules/JkPublishPages/JkPublishPages.module,48bf14c419a1d441412510faf39c326d
+"Every %s days","Alle %s Tage",,site/modules/JkPublishPages/JkPublishPages.module,2cd5f78b02d861b6e32f39e777f8e442
+"Every week","Jede Woche",,site/modules/JkPublishPages/JkPublishPages.module,64863d871b7d8ecb1eb689ceb3595cb5
+"Every %s weeks","Alle %s Wochen",,site/modules/JkPublishPages/JkPublishPages.module,1438c7b7a539ccb061c084fc74933902
+"Cron Interval","Cron Intervall",,site/modules/JkPublishPages/JkPublishPages.module,d5e0cb70b623ef0f97d6dec1cf425a06
+"Please select the interval at which a page should be checked for publication options.","Bitte wählen Sie das Intervall aus, in dem eine Seite auf Veröffentlichungsmöglichkeiten geprüft werden soll.",,site/modules/JkPublishPages/JkPublishPages.module,61f5923da1288f535721d7fe521002ab
+"Add fields to templates","Felder zu den Vorlagen hinzufügen",,site/modules/JkPublishPages/JkPublishPages.module,ee1a44c6d1ecb6becd7014968837a6a6
+"Check/uncheck all Templates","Alle Vorlagen markieren/entfernen",,site/modules/JkPublishPages/JkPublishPages.module,a1610b8d93d59ffaa36c9ac65fadf7f5
+"If a template is checked, than the publishing fields are present in this template or will be added to this template after pressing the save button. On all other templates these fields are not present or will be removed after pressing the save button.","Wenn eine Vorlage ausgewählt ist, sind die Veröffentlichungsfelder in dieser Vorlage vorhanden oder werden dieser Vorlage hinzugefügt, nachdem Sie diese Seite gespeichert haben. Bei allen anderen Vorlagen sind diese Felder nicht vorhanden oder werden nach dem Speichern entfernt.",,site/modules/JkPublishPages/JkPublishPages.module,751e47c1a673fa74452a88133c913f84
+"Please select all templates where you want to add the publishing fields and press the save button afterwards. Only to mention: The homepage template is excluded!","Bitte wählen Sie alle Vorlagen aus, denen Sie die Veröffentlichungsfelder hinzufügen möchten, und speichern Sie anschließend diese Seite. Hinweis: Die Homepage-Vorlage ist ausgeschlossen und kann daher nicht ausgewählt werden!",,site/modules/JkPublishPages/JkPublishPages.module,c7467ebe25d55b4d1d62e6a3d1e13851
+"Publish From Date","Veröffentlichung Beginn",,site/modules/JkPublishPages/JkPublishPages.module,a2d71c977c434a7b426a4cbf3e7b05e1
+"Publish Until Date","Veröffentlichung Ende",,site/modules/JkPublishPages/JkPublishPages.module,99397fcb121478a9d2dce819d0b4d34e
+"Action after publication has ended","Aktion nach Beendigung der Veröffentlichung",,site/modules/JkPublishPages/JkPublishPages.module,0931aed1b5a509439888b27a717c79b1
+"Decide what should happen with this page after the publish end date has been reached.","Entscheiden Sie, was mit dieser Seite passieren soll, nachdem das Enddatum der Veröffentlichung erreicht wurde.",,site/modules/JkPublishPages/JkPublishPages.module,85ae32bf6d430cf5bb5bd92a88f85c28
+"Parent page",Elternseite,,site/modules/JkPublishPages/JkPublishPages.module,70a4bc2672e2e3912e6476a2bd7ba29b
+"Select the page which should be the new parent page for this page.","Wählen Sie die Seite aus, welche als neue Elternseite für diese Seite dienen soll.",,site/modules/JkPublishPages/JkPublishPages.module,174825143efe547a7f036e3969faff89
+"Publishing options",Veröffentlichungsoptionen,,site/modules/JkPublishPages/JkPublishPages.module,220216efb889c070dcc6a023571fbc5b

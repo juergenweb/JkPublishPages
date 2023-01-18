@@ -1,0 +1,10 @@
+
+#toggle-link {
+    text-decoration: underline;
+    display:inline-block;
+}
+
+#toggle-link:hover {
+    text-decoration: none;
+    cursor: pointer;
+}
