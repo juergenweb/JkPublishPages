@@ -76,7 +76,7 @@ Explanation:
 You have some setting possibilities inside your template configuration to set which templates are allowed to be a parent
 or which templates are allowed to be a child template. In addition, you can decide, whether a given template can have
 children or not.
-All these settings have an impact on the select drop-down input field. This means that only pages can be selected to be
+All these settings have an impact on the select drop-down for the selectable parent pages input field. This means that only pages can be selected to be
 a new parent page for the current page, that are allowed to be a parent page (depending on your settings).
 
 In other words, the values of the select field displayed are dynamically and can differ from page to page (or template
