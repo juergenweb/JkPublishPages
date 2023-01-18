@@ -7,7 +7,7 @@ After the publishing end date has been reached, you can decide what should happe
 There are several options:
 
 * No, action - The page is just set to unpublished
-* Move to trash - The page will be moved directly to the trash after the page was unpublished
+* Move to trash - The page will be moved directly to the trash after the publication end date is reached
 * Delete permanently - The page will be deleted directly without moving it to the thrash before
 * Move the page to a new parent - This could be useful if you want to move the page fe to an archive. In this case, the
 page is only moved to a new position within the page tree, but remains published so that it can still be viewed
