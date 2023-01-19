@@ -193,9 +193,10 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             $selectors = 'flags!="8",'; // exclude all system templates
             $selectors .= 'noChildren!=1,'; // exclude all templates which are not allowed to have children
 
+
             // 1) include only templates which are allowed to be a parent template (if set in the current page template)
-            if($current_page->template->parentTemplates){
-                $selectors .= 'id='.implode('|', $current_page->template->parentTemplates);
+            if ($current_page->template->parentTemplates) {
+                $selectors .= 'id=' . implode('|', $current_page->template->parentTemplates);
             }
 
             // Get all allowed templates for now
@@ -207,18 +208,24 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             */
             $template_ids = [];
 
-            foreach($templates as $key => $template){
-                if(($template->childTemplates) && (!in_array($current_page->templates_id, $template->childTemplates))){
+            foreach ($templates as $key => $template) {
+                if (($template->childTemplates) && (!in_array($current_page->templates_id,
+                        $template->childTemplates))) {
                     $templates->remove($key);
                 }
+
                 $template_ids[] = $template->id;
             }
 
-            $pages = wire('pages')->find('id!='.$current_page->id); // exclude the current page
-
+            $exclude_pages[] = $current_page->id; // remove the current page from the WirePages array
+            if ($current_page->parent_id) {
+                // remove the current parent page from the WirePages array
+                $exclude_pages[] = $current_page->parent_id;
+            }
+            $pages = wire('pages')->find('id!=' . implode('|', $exclude_pages));
             // remove all pages which do not use one of the templates
-            foreach($pages as $key => $page){
-                if(!in_array($page->templates_id, $template_ids)){
+            foreach ($pages as $key => $page) {
+                if (!in_array($page->templates_id, $template_ids)) {
                     $pages->remove($key);
                 }
             }
