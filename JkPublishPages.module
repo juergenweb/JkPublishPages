@@ -184,29 +184,45 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      */
     protected function getParentPages(): PageArray|null
     {
-        // this page
-        $current_page_id = $this->wire('input')->get('id');
-        $current_page = $this->wire('pages')->get($current_page_id);
+        // the page that is displayed at the moment in the backend
+        $current_page = $this->wire('pages')->get($this->wire('input')->get('id')); // the current page object
 
-        if ($current_page->id != '0') { // check if it is a real page
-            $current_template = $current_page->template;
-            $current_page_template_id = $current_template->id;
-            // get the current parent template
-            $current_parent_template_id = wire('pages')->get($current_page->parent_id)->templates_id;
-            // find possible templates according to their settings
-            $selectors = 'flags!="8",';
+        if ($current_page->id > 0) {
+
+            // create the selector to find allowed templates for parent pages
+            $selectors = 'flags!="8",'; // exclude all system templates
             $selectors .= 'noChildren!=1,'; // exclude all templates which are not allowed to have children
-            $selectors .= 'id!=' . $current_parent_template_id; // exclude the current parent template
-            $allowed_templates = $possible_parents = wire('templates')->find($selectors)->getKeys();
-            // find possible templates according the settings of the current parentTemplates property
-            $possible_children = wire('templates')->find('id=' . implode('|',
-                    $current_template->parentTemplates))->getKeys();
-            // find which templates are inside the parents and inside the children array
-            if ($possible_children) {
-                $allowed_templates = array_intersect($possible_parents, $possible_children);
+
+            // 1) include only templates which are allowed to be a parent template (if set in the current page template)
+            if($current_page->template->parentTemplates){
+                $selectors .= 'id='.implode('|', $current_page->template->parentTemplates);
             }
-            $templates = implode('|', $allowed_templates);
-            return wire('pages')->find('template=' . $templates . ',id!=' . $current_page_template_id);
+
+            // Get all allowed templates for now
+            $templates = wire('templates')->find($selectors);
+
+            /*
+            As the last step exclude all templates which are not allowed to have the current page as child by checking
+            the if child templates were set
+            */
+            $template_ids = [];
+
+            foreach($templates as $key => $template){
+                if(($template->childTemplates) && (!in_array($current_page->templates_id, $template->childTemplates))){
+                    $templates->remove($key);
+                }
+                $template_ids[] = $template->id;
+            }
+
+            $pages = wire('pages')->find('id!='.$current_page->id); // exclude the current page
+
+            // remove all pages which do not use one of the templates
+            foreach($pages as $key => $page){
+                if(!in_array($page->templates_id, $template_ids)){
+                    $pages->remove($key);
+                }
+            }
+            return $pages;
         } else {
             return null;
         }
