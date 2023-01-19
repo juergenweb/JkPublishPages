@@ -177,14 +177,14 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     }
 
     /**
-     * Get an PageArray containing all pages that can be set as new parent page for the page that should be moved
+     * Get an PageArray containing all pages that can be set as the new parent for the page that should be moved
      * @return PageArray|null
      * @throws WireException
      * @throws WirePermissionException
      */
     protected function getParentPages(): PageArray|null
     {
-        // the page that is displayed at the moment in the backend
+        // get the current page object
         $current_page = $this->wire('pages')->get($this->wire('input')->get('id')); // the current page object
 
         if ($current_page->id > 0) {
@@ -193,43 +193,29 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             $selectors = 'flags!="8",'; // exclude all system templates
             $selectors .= 'noChildren!=1,'; // exclude all templates which are not allowed to have children
 
-
-            // 1) include only templates which are allowed to be a parent template (if set in the current page template)
+            // include only templates which are allowed to be a parent template (if set in the current page template)
             if ($current_page->template->parentTemplates) {
                 $selectors .= 'id=' . implode('|', $current_page->template->parentTemplates);
             }
-
-            // Get all allowed templates for now
+            
+            // get all templates filtered by the selectors
             $templates = wire('templates')->find($selectors);
 
-            /*
-            As the last step exclude all templates which are not allowed to have the current page as child by checking
-            the if child templates were set
-            */
-            $template_ids = [];
-
+            // Exclude all templates which are not allowed to have the current page as child
             foreach ($templates as $key => $template) {
                 if (($template->childTemplates) && (!in_array($current_page->templates_id,
                         $template->childTemplates))) {
                     $templates->remove($key);
                 }
-
-                $template_ids[] = $template->id;
             }
 
-            $exclude_pages[] = $current_page->id; // remove the current page from the WirePages array
-            if ($current_page->parent_id) {
-                // remove the current parent page from the WirePages array
-                $exclude_pages[] = $current_page->parent_id;
-            }
-            $pages = wire('pages')->find('id!=' . implode('|', $exclude_pages));
-            // remove all pages which do not use one of the templates
-            foreach ($pages as $key => $page) {
-                if (!in_array($page->templates_id, $template_ids)) {
-                    $pages->remove($key);
-                }
-            }
-            return $pages;
+            // create array that consists of the ids of all allowed templates
+            $templates = $templates->implode('|', 'id');
+
+            // create array that consists of the ids of all not allowed pages
+            $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id]);
+            return wire('pages')->find('id!=' . $exclude_pages.',templates_id='.$templates);
+
         } else {
             return null;
         }
