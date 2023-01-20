@@ -478,7 +478,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         $templates = [];
         //grab template of home page
         $homepage = wire('pages')->get(1);
-        foreach (wire('templates')->find('flags!="8",noChildren!=1,name!=' . $homepage->template->name) as $template) {
+        foreach (wire('templates')->find('flags!="8",name!=' . $homepage->template->name) as $template) {
             $templates[] = $template->name;
         }
         return $templates;
