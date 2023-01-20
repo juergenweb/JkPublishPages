@@ -158,6 +158,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         $this->addHookAfter('ProcessLanguage::processCSV', $this, 'addTranslationsToFields');
         $this->addHookAfter('InputfieldPage::getSelectablePages', $this, 'setPageArrayNew');
         $this->addHookAfter('InputfieldCheckboxes::render', $this, 'addToggle');
+        $this->addHookAfter('ProcessPageEdit::buildForm', $this, 'hideInputfield');
     }
 
     /**
@@ -214,7 +215,9 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
 
             // create array that consists of the ids of all not allowed pages
             $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id, 1]);
-            return wire('pages')->find('id!=' . $exclude_pages.',templates_id='.$templates);
+            //return wire('pages')->find('id!=' . $exclude_pages.',templates_id='.$templates);
+            return wire('pages')->find('id=10000,templates_id=' . $templates);
+
 
         } else {
             return null;
@@ -235,7 +238,28 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     {
         $field = $event->object;
         if ($field->name == 'jk_move_child') {
-            $event->return = $this->getParentPages();
+            if (($this->getParentPages()) && ($this->getParentPages()->items)) {
+                $event->return = $this->getParentPages();
+            }
+        }
+    }
+
+    /**
+     * Hide the parent page field on the edit form and remove the move option from the select field if there are no
+     * pages that can be selected
+     * @param HookEvent $event
+     * @return void
+     * @throws WireException
+     * @throws WirePermissionException
+     */
+    protected function hideInputfield(HookEvent $event): void
+    {
+        if (!$this->getParentPages()->items) {
+            $wrapper = $event->return;
+            // remove the move to parent option from select field
+            $wrapper->jk_action_after->removeOption('3');
+            // hide the parent page field on the form
+            $wrapper->jk_move_child->collapsed = Inputfield::collapsedHidden;
         }
     }
 
@@ -428,11 +452,11 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             //grab the field object
             $f = $this->wire('fields')->get($fieldName);
             // create array if field properties that should be set and saved
-            $field_properties = ['label','description','notes'];
-            foreach($field_properties as $property){
+            $field_properties = ['label', 'description', 'notes'];
+            foreach ($field_properties as $property) {
                 if ($f->$property) {
                     ${$property} = $translation->getTranslation($this, $f->$property);
-                    $property_lang = $property.$language->id;
+                    $property_lang = $property . $language->id;
                     $f->set($property_lang, ${$property});
                     bd($f->get($property_lang));
                     $f->save($property);
