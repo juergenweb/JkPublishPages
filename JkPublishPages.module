@@ -28,7 +28,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     ];
     protected array $templates = []; // array of all templates which contain at least one of the module fields
     protected array $actions = []; // array that hold all possible actions after publishing has ended
-
+    protected PageArray|null $parent_pages;
     /**
      * Get all info about the module
      * @return array
@@ -159,6 +159,8 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         $this->addHookAfter('InputfieldPage::getSelectablePages', $this, 'setPageArrayNew');
         $this->addHookAfter('InputfieldCheckboxes::render', $this, 'addToggle');
         $this->addHookAfter('ProcessPageEdit::buildForm', $this, 'hideInputfield');
+
+        $this->parent_pages = $this->getParentPages();
     }
 
     /**
@@ -234,8 +236,8 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     {
         $field = $event->object;
         if ($field->name == 'jk_move_child') {
-            if (($this->getParentPages()) && ($this->getParentPages()->items)) {
-                $event->return = $this->getParentPages();
+            if (($this->parent_pages) && ($this->parent_pages->count)) {
+                $event->return = $this->parent_pages;
             }
         }
     }
@@ -250,7 +252,8 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      */
     protected function hideInputfield(HookEvent $event): void
     {
-        if (!$this->getParentPages()->items) {
+        bd($this->parent_pages);
+        if (!$this->parent_pages->count) {
             $wrapper = $event->return;
             // remove the move to parent option from select field
             $wrapper->jk_action_after->removeOption('3');
