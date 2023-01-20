@@ -197,7 +197,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             if ($current_page->template->parentTemplates) {
                 $selectors .= 'id=' . implode('|', $current_page->template->parentTemplates);
             }
-            
+
             // get all templates filtered by the selectors
             $templates = wire('templates')->find($selectors);
 
@@ -213,7 +213,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             $templates = $templates->implode('|', 'id');
 
             // create array that consists of the ids of all not allowed pages
-            $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id]);
+            $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id, 1]);
             return wire('pages')->find('id!=' . $exclude_pages.',templates_id='.$templates);
 
         } else {
@@ -427,15 +427,16 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         foreach ($this->moduleFields as $fieldName) {
             //grab the field object
             $f = $this->wire('fields')->get($fieldName);
-            if ($f->label) {
-                $label = $translation->getTranslation($this, $f->label);
-                $f->set("label$language->id", $label);
-                $f->save('label');
-            }
-            if ($f->description) {
-                $description = $translation->getTranslation($this, $f->description);
-                $f->set("description$language->id", $description);
-                $f->save('description');
+            // create array if field properties that should be set and saved
+            $field_properties = ['label','description','notes'];
+            foreach($field_properties as $property){
+                if ($f->$property) {
+                    ${$property} = $translation->getTranslation($this, $f->$property);
+                    $property_lang = $property.$language->id;
+                    $f->set($property_lang, ${$property});
+                    bd($f->get($property_lang));
+                    $f->save($property);
+                }
             }
         }
     }
@@ -590,12 +591,12 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             $f->name = 'jk_move_child';
             $f->label = $this->_('Parent page');
             $f->description = $this->_('Select the page which should be the new parent page for this page.');
+            $f->notes = $this->_('The homepage is not allowed to be the new parent, so it will not be displayed inside the select drop-down.');
             $f->showIf = 'jk_action_after=3';
             $f->defaultValue = '1';  // set homepage as default value
             $f->required = true;
             $f->requiredIf = 'jk_action_after=3';
             $f->inputfield = 'InputfieldSelect';
-            $f->parent_id = 1;
             $f->save();
         }
 
