@@ -212,13 +212,9 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
 
             // create array that consists of the ids of all allowed templates
             $templates = $templates->implode('|', 'id');
-
             // create array that consists of the ids of all not allowed pages
             $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id, 1]);
-            //return wire('pages')->find('id!=' . $exclude_pages.',templates_id='.$templates);
-            return wire('pages')->find('id=10000,templates_id=' . $templates);
-
-
+            return wire('pages')->find('id!=' . $exclude_pages . ',templates_id=' . $templates);
         } else {
             return null;
         }
