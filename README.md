@@ -82,6 +82,14 @@ a new parent page for the current page, that are allowed to be a parent page (de
 In other words, the values of the select field displayed are dynamically and can differ from page to page (or template
 to template). You do not have to take care of it - it all runs behind the scenes. 
 
+If there are no pages to select, because no page fulfill the requirements to be a new parent for the current page, then 
+the option to move the page to a new parent is no longer visible inside the drop-down select for the further action 
+after the publication end date is reached.
+In addition, the select field, where possible parent pages can be selected will be hidden completely.
+
+As you can see, the module takes care of all and offers you only possibilities, that can be used according to your
+settings.
+
 But there is one thing to mention in this case: If you change your template settings later on, and you have chosen a
 parent page which will no longer be allowed to be a parent page, the movement will not take place.
 So be aware of changing template settings later on - in this case you have to check all your pages manually if the
