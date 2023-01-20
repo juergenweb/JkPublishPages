@@ -252,7 +252,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      */
     protected function hideInputfield(HookEvent $event): void
     {
-        bd($this->parent_pages);
         if (!$this->parent_pages->count) {
             $wrapper = $event->return;
             // remove the move to parent option from select field
@@ -457,7 +456,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
                     ${$property} = $translation->getTranslation($this, $f->$property);
                     $property_lang = $property . $language->id;
                     $f->set($property_lang, ${$property});
-                    bd($f->get($property_lang));
                     $f->save($property);
                 }
             }
