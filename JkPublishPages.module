@@ -254,10 +254,13 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     {
         if (!$this->parent_pages->count) {
             $wrapper = $event->return;
+
             // remove the move to parent option from select field
-            $wrapper->jk_action_after->removeOption('3');
+            if($wrapper->jk_action_after)
+                $wrapper->jk_action_after->removeOption('3');
             // hide the parent page field on the form
-            $wrapper->jk_move_child->collapsed = Inputfield::collapsedHidden;
+            if($wrapper->jk_move_child)
+                $wrapper->jk_move_child->collapsed = Inputfield::collapsedHidden;
         }
     }
 
