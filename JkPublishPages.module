@@ -26,9 +26,11 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         'jk_move_child',
         'jk_publish_open_END'
     ];
+
     protected array $templates = []; // array of all templates which contain at least one of the module fields
     protected array $actions = []; // array that hold all possible actions after publishing has ended
     protected PageArray|null $parent_pages;
+
     /**
      * Get all info about the module
      * @return array
@@ -229,8 +231,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * The output will be an PageArray including all pages which use one of the given templates
      * @param HookEvent $event
      * @return void
-     * @throws WireException
-     * @throws WirePermissionException
      */
     protected function setPageArrayNew(HookEvent $event): void
     {
@@ -255,13 +255,9 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         if (!$this->parent_pages->count) {
             $wrapper = $event->return;
             // remove the move to parent option from select field
-            if($wrapper->jk_action_after){
-                $wrapper->jk_action_after->removeOption('3');
-            }
+            $wrapper->jk_action_after->removeOption('3');
             // hide the parent page field on the form
-            if($wrapper->jk_move_child){
-                $wrapper->jk_move_child->collapsed = Inputfield::collapsedHidden;
-            }
+            $wrapper->jk_move_child->collapsed = Inputfield::collapsedHidden;
         }
     }
 
@@ -302,7 +298,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      */
     protected function runJkPublishPages(): void
     {
-
         $templateSelector = $this->input_templates ? 'template=' . implode('|', $this->input_templates) . ',' : '';
 
         // create general selector for unpublished and published pages
@@ -323,18 +318,20 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             if ($p->isUnpublished()) {
                 $p->removeStatus(Page::statusUnpublished);
             } else {
-                $p->addStatus(Page::statusUnpublished);
                 switch ($p->jk_action_after->id) {
                     case('2'): // move to trash
                         $p->trash();
                         break;
-                    case('3'): // move page under a new parent and make it publish it again
+                    case('3'): // move page under a new parent
+                        $p->jk_publish_until = '';
+                        $p->jk_action_after = '1';
                         $p->parent = $p->jk_move_child->first();
-                        $p->removeStatus(Page::statusUnpublished);
                         break;
                     case('4'): // delete permanently
                         $p->delete();
                         break;
+                    default: // set page status to unpublished
+                        $p->addStatus(Page::statusUnpublished);
                 }
             }
             $p->save();
@@ -424,13 +421,11 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         foreach ($this->wire('templates') as $template) {
             $all_templates[$template->id] = $template->name;
         }
-
         if ($this->input_templates) {
             $delete_templates = array_diff($all_templates, $this->input_templates);
             $this->addFields($this->input_templates);
             $this->removeFields($delete_templates);
         }
-
     }
 
     /**
@@ -478,7 +473,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         $templates = [];
         //grab template of home page
         $homepage = wire('pages')->get(1);
-        foreach (wire('templates')->find('flags!="8",name!=' . $homepage->template->name) as $template) {
+        foreach (wire('templates')->find('flags!="8",noChildren!=1,name!=' . $homepage->template->name) as $template) {
             $templates[] = $template->name;
         }
         return $templates;
