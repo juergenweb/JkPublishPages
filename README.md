@@ -66,7 +66,7 @@ If you want to change the labels of the input fields or the title of the fieldse
 configuration page and make your changes there.
 
 But be aware: If you are using the language file of this module, this will overwrite all manual changes of the language
-values.
+values. This would be the case every time you install the language file manually (fe after updating a module).
 
 ## Move page after publication end date is reached
 As written in the introduction, you can decide what should happen with this page after the publication end date is
