@@ -1,4 +1,4 @@
-# JkPublishPages - ProcessWire module to publish and unpublish pages depending on dates and times
+# JkPublishPages - ProcessWire module to publish/unpublish, delete/trash or move pages depending on dates and times
 
 This module is intended to schedule pages depending on publishing date and times.
 You can determine when a page is published or unpublished by setting start and/or end date and time.
