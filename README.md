@@ -48,6 +48,9 @@ the new parent page.
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/move.png)
 
+TIPP: If you have a very large site and a lot of pages will be listed inside the drop-down, it will be tedious to find
+the desired parent page. In this case, it is recommended to adapt the configuration of your templates to reduce the 
+number of options (restrict the possible children and parent templates) - this should solve the problem.
 
 ## Usage
 Entering values inside the 2 date fields is optional.
