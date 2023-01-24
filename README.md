@@ -123,6 +123,8 @@ created.
 
 4. After the module has been installed, you can make your settings.
 
+Please note: This module needs LazyCron to be installed. If you want to install the module, but LazyCron is not installed, you will get a message that your system does not fulfill the requirements. You will get this message too if your PHP version is lower than 8. So if your PHP version is 8 or higher, you can ignore this message. LazyCron will be installed automatically during the module installation.
+
 ## How to uninstall
 
 Go to the module configuration and check the checkbox for uninstallation. All fields of this module will be removed from 
