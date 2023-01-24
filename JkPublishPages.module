@@ -47,7 +47,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             'autoload' => true,
             'requires' => [
                 'LazyCron',
-                'PHP>=8.1.0',
+                'PHP>=8.0.0',
                 'ProcessWire>=3.0.195'
             ]
         ];
