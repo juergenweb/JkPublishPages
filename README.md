@@ -6,7 +6,7 @@ After the publication end date has been reached, you can decide what should happ
 
 There are several options, that can be selected:
 
-* No, action - The statuts of the page is just set to unpublished
+* No, action - The statuts of the page will be just set to unpublished
 * Move to trash - The page will be moved directly to the trash
 * Delete permanently - The page will be deleted directly without moving it to the thrash before
 * Move the page to a new parent - This could be useful if you want to move the page fe to an archive. In this case, the
