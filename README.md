@@ -10,7 +10,7 @@ There are several options, that can be selected:
 * Move to trash - The page will be moved directly to the trash
 * Delete permanently - The page will be deleted directly without moving it to the thrash before
 * Move the page to a new parent - This could be useful if you want to move the page fe to an archive. In this case, the
-page is only moved to a new position within the page tree, but remains published so that it can still be viewed
+page is only moved to a new position within the page tree, but remains published so that it still can be viewed
 
 Each of the options will only have an effect if a publication end date is set.
 
