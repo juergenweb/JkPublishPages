@@ -22,7 +22,9 @@ window.onload = function () {
     }
 
     const checkboxes = document.getElementsByName('input_templates[]');
-    const toggle = document.getElementById('toggle-link');
-    toggle.onclick = checkAll;
+    if(checkboxes.length != 0){
+        const toggle = document.getElementById('toggle-link');
+        toggle.onclick = checkAll;
+    }
 
 };
