@@ -29,9 +29,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
 
     protected array $templates = []; // array of all templates which contain at least one of the module fields
     protected array $actions = []; // array that hold all possible actions after publishing has ended
-    protected string $input_croninterval = ''; // the interval for the cronjob as time string
-    protected string $input_default_action = ''; // what should happen after the enddate/time is reached
-    protected array $input_input_templates = [];
     protected PageArray|null $parent_pages;
 
     /**
