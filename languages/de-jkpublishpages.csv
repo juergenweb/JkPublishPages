@@ -1,7 +1,7 @@
 en,de,description,file,hash
 "No action",Nichts,,site/modules/JkPublishPages/JkPublishPages.module,fa46ea6f6f6623fdd7039b5f1a8f3940
 "Move page to trash","Seite in den Mülleimer verschieben",,site/modules/JkPublishPages/JkPublishPages.module,7abd7277f9a10193f5586acbe6eb428f
-"Move page as a child of another page","Seite unterhalb eine andere Seite verschieben",,site/modules/JkPublishPages/JkPublishPages.module,0a799a1d0fa08efbe84aa4fc51ead413
+"Move page as a child of another page","Verschiebe die Seite als Kind zu einer anderen Seite",,site/modules/JkPublishPages/JkPublishPages.module,0a799a1d0fa08efbe84aa4fc51ead413
 "Delete page permanently","Seite dauerhaft löschen",,site/modules/JkPublishPages/JkPublishPages.module,95ed993384ff8861b2c4493878dc041e
 "Un/check all","Alle markieren/leeren",,site/modules/JkPublishPages/JkPublishPages.module,d6dc9d4a5a6ad2541a3fd0372484f2e9
 "Publish until date must be after publish from date.","Das Veröffentlichungsenddatum muss nach dem Veröffentlichungstartsdatum liegen.",,site/modules/JkPublishPages/JkPublishPages.module,b619cc9fe8a83660b592d8dabb93e0bb
