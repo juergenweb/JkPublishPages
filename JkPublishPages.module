@@ -479,7 +479,8 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
         //exclude templates
         $exclude = [
             $homepage->template->name,
-            // templates from FrontendLogin module
+            // exclude templates from FrontendLogin module
+            // this only for future purposes - do not wonder
             'fl_activationpage',
             'fl_deleteaccountpage',
             'fl_deleterequestpage',
