@@ -472,8 +472,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
 
                     $table_name = 'fieldtype_options';
 
-                    bd($language->id);
-                    bd($this->wire('languages')->getDefault()->id);
                     // check if language is default language
                     $id = '';
                     if($language->id != $this->wire('languages')->getDefault()->id) {
