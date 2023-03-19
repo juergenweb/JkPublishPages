@@ -599,7 +599,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     {
         // grab the default config data of the module and save it to the database
         $data = self::getDefaultData();
-        bd($data);
         wire('modules')->saveConfig($this, $data);
 
         // Create the required fields for this module and save them to the database
