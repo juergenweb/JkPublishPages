@@ -471,7 +471,16 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
                     $title = $this->wire('sanitizer')->string($translation->getTranslation($textdomain, $action));
 
                     $table_name = 'fieldtype_options';
-                    $values = 'title' . $language->id . ' = "' . $title . '"';
+
+                    bd($language->id);
+                    bd($this->wire('languages')->getDefault()->id);
+                    // check if language is default language
+                    $id = '';
+                    if($language->id != $this->wire('languages')->getDefault()->id) {
+                        $id = $language->id;
+                    }
+
+                    $values = 'title' . $id . ' = "' . $title . '"';
                     $where = 'fields_id="' . $f->id . '" AND title="' . $action . '"';
                     $query = 'UPDATE ' . $table_name . ' SET ' . $values . ' WHERE ' . $where;
                     try {
