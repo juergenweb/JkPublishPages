@@ -35,7 +35,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * Get all info about the module
      * @return array
      */
-    public static function getModuleInfo(): array
+    public static function getModuleInfo():array
     {
         return [
             'title' => 'Publish/Unpublish pages',
@@ -60,6 +60,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     {
         parent::__construct();
 
+
         // create action array
         $this->actions = [
             '1' => $this->_('No action'),
@@ -74,7 +75,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * These are the default configuration values which will be saved in the db during the installation process
      * @return array
      */
-    public static function getDefaultData(): array
+    public static function getDefaultData():array
     {
         return [
             'input_croninterval' => 'everyHour',
@@ -89,7 +90,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @param array $array
      * @return string
      */
-    protected function arrayToString(array $array): string
+    protected function arrayToString(array $array):string
     {
         $string = '';
         foreach ($array as $key => $item) {
@@ -103,7 +104,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * Returns an array with the id of the template as key and the name as value
      * @throws WireException
      */
-    protected function getTemplatesWithModuleFields(): array
+    protected function getTemplatesWithModuleFields():array
     {
         $templates = [];
         foreach ($this->wire('templates') as $t) {
@@ -120,7 +121,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @return array
      * @throws WireException
      */
-    protected function getPagesWithModuleFields(): array
+    protected function getPagesWithModuleFields():array
     {
         $modulefield_pages = wire('pages')->find('templates_id=' . implode('|',
                 array_keys($this->getTemplatesWithModuleFields())) . ',include=all')->getArray();
@@ -135,7 +136,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @return void
      * @throws WireException
      */
-    public function init(): void
+    public function init():void
     {
         // find all templates that include at least one of the publishing fields and save them to the input_templates array
         $data = $this->wire('modules')->getConfig($this);
@@ -166,7 +167,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @param HookEvent $event
      * @return void
      */
-    protected function addToggle(HookEvent $event): void
+    protected function addToggle(HookEvent $event):void
     {
         $field = $event->object;
         if ($field->name == 'input_templates') {
@@ -182,7 +183,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function getParentPages(): PageArray|null
+    protected function getParentPages():PageArray|null
     {
         // get the current page object
         $current_page = $this->wire('pages')->get($this->wire('input')->get('id')); // the current page object
@@ -227,7 +228,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @param HookEvent $event
      * @return void
      */
-    protected function setPageArrayNew(HookEvent $event): void
+    protected function setPageArrayNew(HookEvent $event):void
     {
         $field = $event->object;
         if ($field->name == 'jk_move_child') {
@@ -245,17 +246,19 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function hideInputfield(HookEvent $event): void
+    protected function hideInputfield(HookEvent $event):void
     {
         if (!$this->parent_pages->count) {
             $wrapper = $event->return;
 
             // remove the move to parent option from select field
-            if($wrapper->jk_action_after)
+            if ($wrapper->jk_action_after) {
                 $wrapper->jk_action_after->removeOption('3');
+            }
             // hide the parent page field on the form
-            if($wrapper->jk_move_child)
+            if ($wrapper->jk_move_child) {
                 $wrapper->jk_move_child->collapsed = Inputfield::collapsedHidden;
+            }
         }
     }
 
@@ -295,7 +298,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @return void
      * @throws WireException
      */
-    protected function runJkPublishPages(): void
+    protected function runJkPublishPages():void
     {
         $templateSelector = $this->input_templates ? 'template=' . implode('|', $this->input_templates) . ',' : '';
 
@@ -343,7 +346,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @param HookEvent $event
      * @return void
      */
-    protected function setPageStatusManually(HookEvent $event): void
+    protected function setPageStatusManually(HookEvent $event):void
     {
         $page = $event->arguments(0);
 
@@ -371,7 +374,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function removeFields(array $templates): void
+    protected function removeFields(array $templates):void
     {
         foreach ($templates as $template) {
             $currentTempl = wire('templates')->get($template);
@@ -389,7 +392,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function addFields(array $templates): void
+    protected function addFields(array $templates):void
     {
         foreach ($templates as $template) {
             $currentTempl = wire('templates')->get($template);
@@ -414,7 +417,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function addRemovePublishingFields(): void
+    protected function addRemovePublishingFields():void
     {
         $all_templates = [];
         foreach ($this->wire('templates') as $template) {
@@ -436,7 +439,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function addTranslationsToFields(HookEvent $event): void
+    protected function addTranslationsToFields(HookEvent $event):void
     {
 
         // get the language object of the uploaded translation csv file
@@ -457,6 +460,29 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
                     $f->save($property);
                 }
             }
+            // only for multi-language site -> save the select options in the given language from the csv file
+            if (($this->wire('languages')) && ($fieldName == 'jk_action_after')) {
+
+                //get the text-domain
+                $textdomain = $translation->objectToTextdomain($this);
+
+                foreach ($this->actions as $action) {
+
+                    $title = $this->wire('sanitizer')->string($translation->getTranslation($textdomain, $action));
+
+                    $table_name = 'fieldtype_options';
+                    $values = 'title' . $language->id . ' = "' . $title . '"';
+                    $where = 'fields_id="' . $f->id . '" AND title="' . $action . '"';
+                    $query = 'UPDATE ' . $table_name . ' SET ' . $values . ' WHERE ' . $where;
+                    try {
+                        $insert = $this->wire('database')->prepare($query);
+                        $result = $this->wire('database')->execute($insert);
+                    } catch (\Exception $e) {
+                        $result = false;
+                        $this->trackException($e, false, true);
+                    }
+                }
+            }
         }
     }
 
@@ -467,7 +493,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    protected function getTemplates(): array
+    protected function getTemplates():array
     {
         $templates = [];
         //grab template of home page
@@ -487,7 +513,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             'fl_recoverylogindatapage',
             'fl_registerpage'
         ];
-        $query_string = 'flags!="8",name!='.implode('|',$exclude);
+        $query_string = 'flags!="8",name!=' . implode('|', $exclude);
 
         foreach (wire('templates')->find($query_string) as $template) {
             $templates[] = $template->name;
@@ -496,14 +522,13 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     }
 
 
-
     /**
      * Config input fields
      * @param $inputfields
      * @return void
      * @throws WirePermissionException|WireException
      */
-    public function ___getModuleConfigInputfields($inputfields): void
+    public function ___getModuleConfigInputfields($inputfields):void
     {
         // create array of CronJob intervals
         $intervals = [
@@ -561,10 +586,11 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    public function ___install(): void
+    public function ___install():void
     {
         // grab the default config data of the module and save it to the database
         $data = self::getDefaultData();
+        bd($data);
         wire('modules')->saveConfig($this, $data);
 
         // Create the required fields for this module and save them to the database
@@ -573,8 +599,8 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             $f->type = $this->modules->get('FieldtypeDatetime');
             $f->name = 'jk_publish_from';
             $f->label = $this->_('Publish From Date');
-            $f->dateOutputFormat = 'd-m-Y H:i:s';
-            $f->dateInputFormat = 'd-M-Y';
+            $f->dateOutputFormat = 'd-M-Y H:i:s';
+            $f->dateInputFormat = 'd/m/Y';
             $f->datepicker = 3; // if you want datepicker enabled
             $f->timeInputFormat = 'H:i';
             $f->yearRange = '+0:+10';
@@ -589,7 +615,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
             $f->name = 'jk_publish_until';
             $f->label = $this->_('Publish Until Date');
             $f->dateOutputFormat = 'd-m-Y H:i:s';
-            $f->dateInputFormat = 'd-M-Y';
+            $f->dateInputFormat = 'd/m/Y';
             $f->datepicker = 3; // if you want datepicker enabled
             $f->timeInputFormat = 'H:i';
             $f->yearRange = '+0:+10';
@@ -660,7 +686,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
      * @throws WireException
      * @throws WirePermissionException
      */
-    public function ___uninstall(): void
+    public function ___uninstall():void
     {
         // remove module fields from every template
         $this->removeFields($this->input_templates);
