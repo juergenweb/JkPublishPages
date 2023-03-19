@@ -29,6 +29,9 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
 
     protected array $templates = []; // array of all templates which contain at least one of the module fields
     protected array $actions = []; // array that hold all possible actions after publishing has ended
+    protected string $input_croninterval = ''; // the interval for the cronjob as time string
+    protected string $input_default_action = ''; // what should happen after the enddate/time is reached
+    protected array $input_input_templates = [];
     protected PageArray|null $parent_pages;
 
     /**
@@ -59,11 +62,6 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
     public function __construct()
     {
         parent::__construct();
-
-        // create a property of each item according to the configuration settings from the database
-        foreach ($this->wire('modules')->getConfig($this) as $key => $value) {
-            $this->$key = $value;
-        }
 
         // create action array
         $this->actions = [
@@ -281,6 +279,7 @@ class JkPublishPages extends WireData implements Module, ConfigurableModule
                 $from = $this->wire('session')->get('from');
                 if (!is_null($from)) {
                     $until = $f->value;
+
                     // compare publish_from and publish_until date
                     if (($from && $until) && ($from >= $until)) {
                         $f->error($this->_('Publish until date must be after publish from date.'));
