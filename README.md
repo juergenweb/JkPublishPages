@@ -36,7 +36,7 @@ Now you can choose if you want to show the parent page beside the default page n
 This happens inside the select input, where you can select a new parent after the publishing option has been expired. 
 This is for the rare case if you have same page names by running a multi-domain installation, because this gives you the opportunity to distinguish the pages of the various domains. This configuration is not really needed if you are running a single website.
 
-![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/parentpagename.png?v=1)
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/showparentpagename.png?v=1)
 
 ## Template view
 
