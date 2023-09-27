@@ -31,6 +31,10 @@ So there is no the need to add/remove the necessary module fields manually to/fr
 To enable/disable all checkboxes at once, you can use the toggle link (Un/check all) above the checkboxes. A little
 JavaScript allows toggling of all checkboxes at once. This makes it much easier and comfortable to add the fields to several templates.
 
+A new option to show the parent page name beside the page name inside the "new parent page select" has been added in version 1.3.3.
+Now you can choose if you want to show the parent page beside the default page name too or not. If you check the box inside the configuration, the parent page name will be displayed next to the page name. 
+This happens inside the select input, where you can select a new parent after the publishing option has been expired. 
+This is for the rare case if you have same page names by running a multi-domain installation, because this gives you the opportunity to distinguish the pages of the various domains. This configuration is not really needed if you are running a single website.
 
 ## Template view
 
