@@ -38,6 +38,12 @@ This is for the rare case if you have same page names by running a multi-domain 
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/showparentpagename.png?v=1)
 
+Take a look here: 
+
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/beforeafter.png?v=1)
+
+The name of the parent page will be added inside the parenthesis after the page name.
+
 ## Template view
 
 Every template, which was selected to use the publishing options includes the following fields:
