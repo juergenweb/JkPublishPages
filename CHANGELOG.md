@@ -14,3 +14,11 @@ In lower versions, you have to add them manually in other languages.
 Due to a request from Dino, a new configuration checkbox was added to add the parent page name beside the default page name in the select input for selecting a new parent, after the publishing time has been expired.
 This could be useful if you are running a multi-domain site, where page names of these domains are the same.
 You can read more on the issue report on Github: [Custom Parent page dropdown option text](https://github.com/juergenweb/JkPublishPages/issues/1)
+
+## [1.3.4] - 2023-12-08
+
+### Add fix for setPageStatusManually Hook
+Thanks to Flo from the support forum for reporting this issue and a solution.
+There has not been done a check on pages save if the given page contains the fields created by this module or not.
+This will lead on certain cases to unwanted side effects concerning the publishing status.
+This fix adds a check for this scenario.
