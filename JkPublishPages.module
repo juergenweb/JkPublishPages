@@ -14,8 +14,8 @@
      * @see http://www.processwire.com
      *
      * A module for publish/unpublish pages depending on date and time settings on per page base using Lazy Cron
-     * In addition you can decide what should happen with this page after publishing ends (move to trash, delete, set
-     *     new parent) Uses LazyCron which will be triggered on every page load
+     * In addition, you can decide what should happen with this page after publishing ends (move to trash, delete, set
+     *     new parent) Uses LazyCron, which will be triggered on every page load
      */
     class JkPublishPages extends WireData implements Module, ConfigurableModule
     {
@@ -30,7 +30,7 @@
         ];
 
         protected array $templates = []; // array of all templates which contain at least one of the module fields
-        protected array $actions = []; // array that hold all possible actions after publishing has ended
+        protected array $actions = []; // array that holds all possible actions after publishing has ended
         protected PageArray|null $parent_pages;
 
         /**
@@ -61,7 +61,7 @@
 
             parent::__construct();
 
-            // create action array
+            // create the action array
             $this->actions = [
                 '1' => $this->_('No action'),
                 '2' => $this->_('Move page to trash'),
@@ -101,8 +101,8 @@
         }
 
         /**
-         * Get all templates which includes at least 1 of the module fields
-         * Returns an array with the id of the template as key and the name as value
+         * Get all templates which includes at least one of the module fields
+         * Returns an array with the id of the template as the key and the name as value
          * @throws WireException
          */
         protected function getTemplatesWithModuleFields(): array
@@ -118,7 +118,7 @@
         }
 
         /**
-         * Get all pages which includes at least 1 of the module fields as an array containing the ids of the pages
+         * Get all pages, which includes at least one of the module fields as an array containing the ids of the pages
          * @return array
          * @throws WireException
          */
@@ -180,7 +180,7 @@
         }
 
         /**
-         * Get an PageArray containing all pages that can be set as the new parent for the page that should be moved
+         * Get a PageArray containing all pages that can be set as the new parent for the page that should be moved
          * @return PageArray|null
          * @throws WireException
          * @throws WirePermissionException
@@ -212,9 +212,9 @@
                     }
                 }
 
-                // create array that consists of the ids of all allowed templates
+                // create the array that consists of the ids of all allowed templates
                 $templates = $templates->implode('|', 'id');
-                // create array that consists of the ids of all not allowed pages
+                // create the array that consists of the ids of all not allowed pages
                 $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id, 1]);
                 return wire('pages')->find('id!=' . $exclude_pages . ',templates_id=' . $templates);
             } else {
@@ -226,7 +226,7 @@
          * Create the new select options for the parent page depending on the allowed pages of each page
          * Not every template is allowed to be a parent of another template
          * So this method should filter out only the allowed templates for parent pages
-         * The output will be an PageArray including all pages which use one of the given templates
+         * The output will be a PageArray including all pages which use one of the given templates
          * @param HookEvent $event
          * @return void
          */
@@ -290,7 +290,7 @@
                     foreach ($result[0] as $item) {
 
                         // extract the label value of the option tag
-                        preg_match('/<([\w]+)[^>]*>(.*?)<\/\1>/', $item, $match);
+                        preg_match('/<(\w+)[^>]*>(.*?)<\/\1>/', $item, $match);
                         $label = $match[2];
                         // grab the value of the option tag which contains the id
                         preg_match("/value='(.*?)'/", $item, $matches);
@@ -402,7 +402,7 @@
         }
 
         /**
-         * Set page status to unpublished or remove unpublished status depending on if date range is out of date or not
+         * Set page status to unpublished or remove unpublished status depending on if the date range is out of date or not
          * This runs on manual save
          * @param HookEvent $event
          * @return void
@@ -432,7 +432,7 @@
         }
 
         /**
-         * Remove module fields from each template inside the templates array
+         * Remove module fields from each template inside the templates' array
          * @param array $templates
          * @return void
          * @throws WireException
@@ -450,7 +450,7 @@
         }
 
         /**
-         * Add module fields to each template inside the templates array
+         * Add module fields to each template inside the templates' array
          * @param array $templates
          * @return void
          * @throws WireException
@@ -537,7 +537,7 @@
 
                         $table_name = 'fieldtype_options';
 
-                        // check if language is default language
+                        // check if language is the default language
                         $id = '';
                         if ($language->id != $this->wire('languages')->getDefault()->id) {
                             $id = $language->id;
@@ -600,7 +600,7 @@
          */
         public function ___getModuleConfigInputfields($inputfields): void
         {
-            // create array of CronJob intervals
+            // create the array of CronJob intervals
             $intervals = [
                 'every30Seconds' => $this->_('Every 30 seconds'),
                 'everyMinute' => $this->_('Every minute'),
