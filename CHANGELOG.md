@@ -29,3 +29,9 @@ This fix adds a check for this scenario.
 
 After no from and start date have been entered and the save but stay unpublished button will be pressed, then the published from date was autmatically populated with the current date and time. This leads to that the article will be published after the next cron run. This is unwanted, because the article should only be published if I directly press the publish button or if I manually enter a start date. 
 The automatic population of the from field have been fixed now. Thanks to Flo for reporting this issue.
+
+## [1.3.6] - 2024-04-25
+
+### All auto population hooks have been removed
+
+Now publish_from and publish_until fields will be no longer auto populated with Hooks. This change is a result of the discussion in the support forum.
