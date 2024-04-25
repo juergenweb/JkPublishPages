@@ -767,12 +767,5 @@
         }
 
 
-        /**
-         * Create a new markup on update to 1.3.7
-         * @return void
-         */
-        public function ___upgrade($fromVersion, $toVersion) {
-
-        }
 
     }
