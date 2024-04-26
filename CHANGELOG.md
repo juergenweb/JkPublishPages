@@ -52,7 +52,7 @@ This could lead to unwanted publication or unpublication of pages, if the user h
 
 ### 2 new validators for start and end date
 
-As mentionend in the previous paragraph unlogical inputs can result in unwanted publishing behavior. Now, the user gets warned by an error message, if the entries he has made, will have an effect on the next cron run.
+As mentionend in the previous paragraph unlogical inputs can result in unwanted publishing behavior. Now, the user gets warned by an error message, if the entries he has made, will have an effect on the next cron run. In other words the user will be informed/warned if a setting seems to be unlogical and will lead to a change in the page publication status on the next cron run. The user can decide if he accepts this change or he needs to enter an other value into this field.
 
 ### New status information
 
