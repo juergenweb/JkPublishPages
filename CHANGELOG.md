@@ -35,3 +35,29 @@ The automatic population of the from field have been fixed now. Thanks to Flo fo
 ### All auto population hooks have been removed
 
 Now publish_from and publish_until fields will be no longer auto populated with Hooks. This change is a result of the discussion in the support forum.
+
+## 2024-04-26
+
+This new version comes with some changes, additions and improvements.
+
+### No more manipulation of the date input fields
+
+In the previous versions, some hooks have changed or have removed values from the 2 date fields. This version let the date fields completely untouched. This means: it does not matter what you enter, nothing will be added or removed. What you enter inside this field will stay in this field.
+
+The problem is, that users can enter some unlogical data (fe start date is before the end date), users publish the page, but the start date entered in the inputfield is in the future, users unpublish a page but the unpublish date is in the future too and so on. 
+
+The cron job will only take the values from the date fields and publish or unpublish a page according to this settings.
+
+This could lead to unwanted publication or unpublication of pages, if the user has entered wrong or unlogical data. To prevent such a behavior 2 new inputfield validations have been added.
+
+### 2 new validators for start and end date
+
+As mentionend in the previous paragraph unlogical inputs can result in unwanted publishing behavior. Now, the user gets warned by an error message, if the entries he has made, will have an effect on the next cron run.
+
+### New status information
+
+Below the label of the publication fieldset, you will now find information about the current page status and what will be changed in the future via cron job. So you will always be up-to-date if your settings are correct.
+
+### New schedule icons in the page tree
+
+If a page status will be changed in the future, you will find a small clock icon next to the page title in the page tree. Hovering over this icon will show you more detailed information about the future activities. 
