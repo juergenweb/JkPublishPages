@@ -60,6 +60,8 @@ A new validator has been added that checks whether both dates (start and end dat
 
 Below the label of the publication fieldset, you will now find information about the current publication status of the page and what will be changed in the future via cronjob. This means you are always up to date and you can see what things will happen in the future (changes that will be made via cronjob).
 
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/publicationinfo.jpg?v=1)
+
 ### New schedule icons in the page tree
 
 If the status of a page is changed in the future, you will find a small clock symbol next to the page title in the page tree. If you move the mouse pointer over this symbol, you will receive more detailed information about future activities. 
