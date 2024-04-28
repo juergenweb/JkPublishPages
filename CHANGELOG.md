@@ -63,3 +63,5 @@ Below the label of the publication fieldset, you will now find information about
 ### New schedule icons in the page tree
 
 If the status of a page is changed in the future, you will find a small clock symbol next to the page title in the page tree. If you move the mouse pointer over this symbol, you will receive more detailed information about future activities. 
+
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/pagetree.jpg?v=1)
