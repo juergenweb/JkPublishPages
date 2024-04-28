@@ -1,10 +1,24 @@
-en,de,description,file,hash
+en,default,description,file,hash
 "No action",Nichts,,site/modules/JkPublishPages/JkPublishPages.module,fa46ea6f6f6623fdd7039b5f1a8f3940
 "Move page to trash","Seite in den Mülleimer verschieben",,site/modules/JkPublishPages/JkPublishPages.module,7abd7277f9a10193f5586acbe6eb428f
 "Move page as a child of another page","Verschiebe die Seite als Kind zu einer anderen Seite",,site/modules/JkPublishPages/JkPublishPages.module,0a799a1d0fa08efbe84aa4fc51ead413
 "Delete page permanently","Seite dauerhaft löschen",,site/modules/JkPublishPages/JkPublishPages.module,95ed993384ff8861b2c4493878dc041e
 "Un/check all","Alle markieren/leeren",,site/modules/JkPublishPages/JkPublishPages.module,d6dc9d4a5a6ad2541a3fd0372484f2e9
 "Publish until date must be after publish from date.","Das Veröffentlichungsenddatum muss nach dem Veröffentlichungstartsdatum liegen.",,site/modules/JkPublishPages/JkPublishPages.module,b619cc9fe8a83660b592d8dabb93e0bb
+"The start and end dates are in the past. This does not make sense. Please remove both dates completely or add a start and/or end date in the future.","Das Anfangs- und das Enddatum liegen in der Vergangenheit. Das macht keinen Sinn. Bitte entfernen Sie beide Datumsangaben vollständig oder geben Sie ein Start- und/oder Enddatum in der Zukunft ein.",,site/modules/JkPublishPages/JkPublishPages.module,b9219b467b8e870757f6e5799510ab9c
+published,veröffentlicht,,site/modules/JkPublishPages/JkPublishPages.module,8f888fedf6bd5ff7c93c6d76bb8dc21c
+unpublished,unveröffentlicht,,site/modules/JkPublishPages/JkPublishPages.module,3ebd43fb0ca85e5d4aae6b6f19703a39
+"will be %s immediately during the next cron run","wird automatisch beim nächsten Cron-Durchlauf auf %s gesetzt",,site/modules/JkPublishPages/JkPublishPages.module,11a529087f835d3502cff35250865c7f
+"remains %s","bleibt %s",,site/modules/JkPublishPages/JkPublishPages.module,ba571db724754f1856575ea83af4780c
+"will be %s on %s","wird auf Status %s am %s geändert",,site/modules/JkPublishPages/JkPublishPages.module,8f0837dcd1982fc32c809a3dd4b88b08
+"publication start date","Start der Veröffentlichung",,site/modules/JkPublishPages/JkPublishPages.module,57d4b5e0be8b635fca3ffc9fd138c4b0
+"publication end date","Ende der Veröffentlichung",,site/modules/JkPublishPages/JkPublishPages.module,d099a18c64c32a40c5bb711a85ac0d61
+"in the past","in der Vergangenheit",,site/modules/JkPublishPages/JkPublishPages.module,73f20f046560b19d639bfcfecbeb08de
+"in the future","in der Zukunft",,site/modules/JkPublishPages/JkPublishPages.module,83b96b4f140d5349b16f1e64e0c053f0
+"This page is %s, but your %s is %s. This means that this page will be %s automatically on the next Cron run. Please check the value of your %s again to ensure that this is the desired behaviour.","Diese Seite ist %s, aber Ihr %s ist %s. Dies bedeutet, dass diese Seite beim nächsten Cron-Lauf automatisch auf den Status ""%s "" geändert werden. Bitte überprüfen Sie den Wert ""%s"" erneut, um sicherzustellen, dass dies das gewünschte Verhalten ist.",,site/modules/JkPublishPages/JkPublishPages.module,139538d1e79efe68c23a4a41075ff840
+"Page is currently %s.","Die Seite ist gegenwärt %s.",,site/modules/JkPublishPages/JkPublishPages.module,8db5a18df520e1fc5559e102fd18113b
+"Schedule plan: This page  %s","Veröffentlichungsplan: Diese Seite %s",,site/modules/JkPublishPages/JkPublishPages.module,cf4b640169cd77f589423e7eee91917d
+"Schedule plan: The status of the publication will remain unchanged in the future.","Veröffentlichungsplan: Der Stautus der Veröffentlichung bleibt in der Zukunft bestehen und wird sich nicht ändern.",,site/modules/JkPublishPages/JkPublishPages.module,edc5b9346513af17da328b088d53be49
 "Every 30 seconds","Alle 30 Sekunden",,site/modules/JkPublishPages/JkPublishPages.module,9f600621e6189e66c7b80aee8153741f
 "Every minute","Jede Minute",,site/modules/JkPublishPages/JkPublishPages.module,5f86190bddaffe634153c40721b41544
 "Every %s minutes","Alle %s Minuten",,site/modules/JkPublishPages/JkPublishPages.module,643bd9766a482fed97aff60a7a4f1b3b
@@ -22,6 +36,7 @@ en,de,description,file,hash
 "Show parent page name beside the page name","Name der Elternseite neben dem Seitennamen anzeigen",,site/modules/JkPublishPages/JkPublishPages.module,4c2c658b408cbc825b8f6f01e58dbe95
 "If you check the box, then the parent page name will be displayed beside the page name which will be set as new parent after publishing time has been expired.","Wenn Sie das Kontrollkästchen aktivieren, wird der Name der Elternseite neben dem Seitennamen angezeigt, der nach Ablauf der Veröffentlichungszeit als neue Elternseit festgelegt wird.",,site/modules/JkPublishPages/JkPublishPages.module,94a428021c6c24149ed63d8eb95e29d5
 "This could be useful, especially if you are running a multi-domain-site containing pages with same page name. Adding the parent page name will give you the possibility to distinguish pages with same page name.","Dies kann insbesondere dann nützlich sein, wenn Sie eine Multi-Domain-Site betreiben, welche Seiten mit demselben Seitennamen enthält. Wenn Sie den Namen der Elternseite hinzufügen, haben Sie die Möglichkeit, Seiten mit demselben Seitennamen zu unterscheiden.",,site/modules/JkPublishPages/JkPublishPages.module,ef35046698ee770346416a1b0d28676a
+"Schedule plan",Veröffentlichungsplan,,site/modules/JkPublishPages/JkPublishPages.module,e4cc045fa8d7d454111f9740cfa8f7a2
 "Publish From Date","Veröffentlichung Beginn",,site/modules/JkPublishPages/JkPublishPages.module,a2d71c977c434a7b426a4cbf3e7b05e1
 "Publish Until Date","Veröffentlichung Ende",,site/modules/JkPublishPages/JkPublishPages.module,99397fcb121478a9d2dce819d0b4d34e
 "Action after publication has ended","Aktion nach Beendigung der Veröffentlichung",,site/modules/JkPublishPages/JkPublishPages.module,0931aed1b5a509439888b27a717c79b1
