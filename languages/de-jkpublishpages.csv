@@ -16,7 +16,7 @@ unpublished,unveröffentlicht,,site/modules/JkPublishPages/JkPublishPages.module
 "in the past","in der Vergangenheit",,site/modules/JkPublishPages/JkPublishPages.module,73f20f046560b19d639bfcfecbeb08de
 "in the future","in der Zukunft",,site/modules/JkPublishPages/JkPublishPages.module,83b96b4f140d5349b16f1e64e0c053f0
 "This page is %s, but your %s is %s. This means that this page will be ""%s"" automatically on the next Cron run. Please check the value of your %s again to ensure that this is the desired behaviour.","Diese Seite ist %s, aber Ihr %s ist %s. Dies bedeutet, dass diese Seite beim nächsten Cron-Lauf automatisch auf den Status ""%s "" geändert werden. Bitte überprüfen Sie den Wert %s erneut, um sicherzustellen, dass dies das gewünschte Verhalten ist.",,site/modules/JkPublishPages/JkPublishPages.module,0c9b79c9d9eb06fb77053ea682a02691
-"Page is currently %s.","Die Seite ist gegenwärt %s.",,site/modules/JkPublishPages/JkPublishPages.module,8db5a18df520e1fc5559e102fd18113b
+"Page is currently %s.","Die Seite ist gegenwärtig %s.",,site/modules/JkPublishPages/JkPublishPages.module,8db5a18df520e1fc5559e102fd18113b
 "Schedule plan: This page  %s","Veröffentlichungsplan: Diese Seite %s",,site/modules/JkPublishPages/JkPublishPages.module,cf4b640169cd77f589423e7eee91917d
 "Schedule plan: The status of the publication will remain unchanged in the future.","Veröffentlichungsplan: Der Stautus der Veröffentlichung bleibt in der Zukunft bestehen und wird sich nicht ändern.",,site/modules/JkPublishPages/JkPublishPages.module,edc5b9346513af17da328b088d53be49
 "Every 30 seconds","Alle 30 Sekunden",,site/modules/JkPublishPages/JkPublishPages.module,9f600621e6189e66c7b80aee8153741f
