@@ -114,6 +114,18 @@ change will affect the page or not.
 But this is a very rare scenario, because the template settings will be done at the beginning and will not be changed
 later on.
 
+## Icons in the page tree beside the page title on pages where the status will change in the future
+
+If the status of a page will be changed in the future via Cronjob, you will see little clock icon next to the page title in the page tree. If you hover over this icon, you will get more information of what will happen.
+
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/pagetree.jpg?v=1)
+
+## Get additional status information inside the fieldset
+
+Below the label of the publication fieldset, you will find information about the current publication status of the page and what will be changed in the future via cronjob. This means you are always up to date and you can see what things will happen in the future (changes that will be made via cronjob).
+
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/publicationinfo.jpg?v=1)
+
 ## Multi-language
 
 This module includes the German translation file. You will need ProcessWire 3.0.195 or higher to import 
