@@ -36,28 +36,30 @@ The automatic population of the from field have been fixed now. Thanks to Flo fo
 
 Now publish_from and publish_until fields will be no longer auto populated with Hooks. This change is a result of the discussion in the support forum.
 
-## 2024-04-26
+## [1.3.7] 2024-04-26
 
 This new version comes with some changes, additions and improvements.
 
 ### No more manipulation of the date input fields
 
-In the previous versions, some hooks have changed or have removed values from the 2 date fields. This version let the date fields completely untouched. This means: it does not matter what you enter, nothing will be added or removed. What you enter inside this field will stay in this field.
+In the previous versions, some hooks changed or removed the values of the 2 date fields. This version leaves the date fields completely untouched. This means: it doesn't matter what you enter, nothing is added or removed. What you enter in this field remains in this field.
 
-The problem is, that users can enter some unlogical data (fe start date is before the end date), users publish the page, but the start date entered in the inputfield is in the future, users unpublish a page but the unpublish date is in the future too and so on. 
+The problem is that users can enter illogical dates (the start date is before the end date), users publish the page but the start date entered in the input field is in the future, users publish a page but the publish date is also in the future, and so on. 
 
-The cron job will only take the values from the date fields and publish or unpublish a page according to this settings.
+The cron job only takes the values from the date fields and publishes or blocks the visibility of a page according to these settings.
 
-This could lead to unwanted publication or unpublication of pages, if the user has entered wrong or unlogical data. To prevent such a behavior 2 new inputfield validations have been added.
+This could lead to unwanted publication or non-publication of pages if the user has entered incorrect or illogical data. To prevent such behaviour, 1 new input field check and the additional output of warnings have been added.
 
-### 2 new validators for start and end date
+### 1 new validator and multiple warnings for start and end date
 
-As mentionend in the previous paragraph unlogical inputs can result in unwanted publishing behavior. Now, the user gets warned by an error message, if the entries he has made, will have an effect on the next cron run. In other words the user will be informed/warned if a setting seems to be unlogical and will lead to a change in the page publication status on the next cron run. The user can decide if he accepts this change or he needs to enter an other value into this field.
+As mentioned in the previous section, illogical entries can lead to undesirable publishing behaviour. The user is now informed by warning messages if the entries he has made will have an impact on the next cron run. In other words, the user will be informed/warned if a setting appears illogical and if there will be a change in the publishing status of the page during the next cron run. The user can then decide whether to accept this change or enter a different value in this field.
+
+A new validator has been added that checks whether both dates (start and end date) are in the past or not. If both dates are in the past, an error is displayed, as it is not permitted (and makes no sense) to enter dates in the past for the scheduling of a page. In this case, you cannot save the page until you have corrected this error.
 
 ### New status information
 
-Below the label of the publication fieldset, you will now find information about the current page status and what will be changed in the future via cron job. So you will always be up-to-date if your settings are correct.
+Below the label of the publication fieldset, you will now find information about the current publication status of the page and what will be changed in the future via cronjob. This means you are always up to date and you can see what things will happen in the future (changes that will be made via cronjob).
 
 ### New schedule icons in the page tree
 
-If a page status will be changed in the future, you will find a small clock icon next to the page title in the page tree. Hovering over this icon will show you more detailed information about the future activities. 
+If the status of a page is changed in the future, you will find a small clock symbol next to the page title in the page tree. If you move the mouse pointer over this symbol, you will receive more detailed information about future activities. 
