@@ -486,14 +486,24 @@
                             $warnings[] = sprintf($warning_text, $publish_text, $publish_end_text, $past_text, $unpublish_text, $publish_end_text);
                         } else {
                             // status unpublished
+                            $text_blocks['nochange'] = sprintf($nochange_text, $unpublish_text);
                             //if (isset($start_pub)) {
-                            $text_blocks['euc'] = sprintf($cron_text, $unpublish_text); // unpublish again
-                            $warnings[] = sprintf($warning_text, $publish_text, $publish_end_text, $past_text, $unpublish_text, $publish_end_text);
+                            //$text_blocks['euc'] = sprintf($cron_text, $unpublish_text); // unpublish again
+                            //$warnings[] = sprintf($warning_text, $publish_text, $publish_end_text, $past_text, $unpublish_text, $publish_end_text);
                             //}
                         }
                     }
                 }
 
+                // remove all other array items if "nochange" key is present
+                if (array_key_exists('nochange', $text_blocks)) {
+                    $value = $text_blocks['nochange'];
+                    $text_blocks = [];
+                    $text_blocks['nochange'] = $value;
+                    // remove all warnings
+                    $warnings = [];
+                }
+           
                 // create text for special cases for combined start and end date
 
                 // 1) start date and end date are in the past
@@ -521,9 +531,7 @@
                 }
 
                 // 3) start and end date are in the past -> remove warning
-                if (isset($start_unpub)) {
-                    $warnings = [];
-                }
+
 
                 // Output the warnings if present
                 foreach ($warnings as $warning) {
@@ -542,13 +550,11 @@
                     unset($text_blocks['nochange']);
                 }
 
-                    if(count($text_blocks)){
-                        return implode(', ', $text_blocks);
-                    } else {
-                        return null;
-                    }
-
-
+                if (count($text_blocks)) {
+                    return implode(', ', $text_blocks);
+                } else {
+                    return null;
+                }
 
 
             }
@@ -595,7 +601,7 @@
 
                 $action = $this->getScheduleAction($page);
 
-                $text .= '<br><u>' .$this->_('Schedule plan:').'</u>';
+                $text .= '<br><u>' . $this->_('Schedule plan:') . '</u>';
 
                 // convert comma separated list to an unordered list for better readability
                 if (!is_null($action)) {
@@ -611,7 +617,7 @@
                     $text .= $action;
 
                 } else {
-                    $text .= '<ul><li>' . $this->_('The status of the publication will remain unchanged in the future.').'</li></ul>';
+                    $text .= '<ul><li>' . $this->_('The status of the publication will remain unchanged in the future.') . '</li></ul>';
                 }
                 $a = "<ul class='Inputfields";
                 $b = "<div id='scheduleplan'>" . $text . "</div><br><ul class='Inputfields";
@@ -635,8 +641,8 @@
 
             // find all templates which have a start date field
             $templates = [];
-            foreach($this->wire('templates') as $template){
-                if($template->hasField('jk_publish_from')){
+            foreach ($this->wire('templates') as $template) {
+                if ($template->hasField('jk_publish_from')) {
                     $templates[] = $template->id;
                 }
             }
@@ -666,9 +672,7 @@
             // 4) jk_publish_from=, jk_publish_until<=now
 
 
-
             $pagesToUnpublish = wire("pages")->find($selectors . "status=published,$templateSelector(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
-
             $pagesToPublish = wire("pages")->find($selectors . "status=unpublished,$templateSelector(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)");
 
             $results = $pagesToUnpublish->import($pagesToPublish);
