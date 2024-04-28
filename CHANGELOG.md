@@ -54,6 +54,8 @@ This could lead to unwanted publication or non-publication of pages if the user 
 
 As mentioned in the previous section, illogical entries can lead to undesirable publishing behaviour. The user is now informed by warning messages if the entries he has made will have an impact on the next cron run. In other words, the user will be informed/warned if a setting appears illogical and if there will be a change in the publishing status of the page during the next cron run. The user can then decide whether to accept this change or enter a different value in this field.
 
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/warnings.jpg?v=1)
+
 A new validator has been added that checks whether both dates (start and end date) are in the past or not. If both dates are in the past, an error is displayed, as it is not permitted (and makes no sense) to enter dates in the past for the scheduling of a page. In this case, you cannot save the page until you have corrected this error.
 
 ### New status information
