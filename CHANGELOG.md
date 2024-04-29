@@ -48,7 +48,7 @@ The problem is that users can enter illogical dates (the start date is before th
 
 The cron job only takes the values from the date fields and publishes or blocks the visibility of a page according to these settings.
 
-This could lead to unwanted publication or non-publication of pages if the user has entered incorrect or illogical data. To prevent such behaviour, 1 new input field check and the additional output of warnings have been added.
+This could lead to unwanted publication or non-publication of pages if the user has entered incorrect or illogical data. To prevent such behaviour, additional display of warnings has been added.
 
 ### Showing warnings for illogical start and end date settings
 
