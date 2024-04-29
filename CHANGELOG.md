@@ -44,7 +44,7 @@ This new version comes with some changes, additions and improvements.
 
 In the previous versions, some hooks changed or removed the values of the 2 date fields. This version leaves the date fields completely untouched. This means: it doesn't matter what you enter, nothing is added or removed. What you enter in this field remains in this field.
 
-The problem is that users can enter illogical dates (the start date is before the end date), users publish the page but the start date entered in the input field is in the future, users publish a page but the publish date is also in the future, and so on. 
+The problem is that users can enter illogical dates (the start date is before the end date), users publish the page but the start date entered in the input field is in the future, users publish a page but the publish end date is in the past, and so on. 
 
 The cron job only takes the values from the date fields and publishes or blocks the visibility of a page according to these settings.
 
