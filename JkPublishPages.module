@@ -45,7 +45,7 @@
                 'summary' => 'Publish and unpublish pages depending on dates and times using LazyCron.',
                 'author' => 'Jürgen Kern',
                 'href' => 'https://github.com/juergenweb/JkPublishPages',
-                'version' => '1.3.6',
+                'version' => '1.3.7',
                 'singular' => true,
                 'autoload' => true,
                 'requires' => [
@@ -616,7 +616,6 @@
          */
         protected function runJkPublishPages(): void
         {
-            bd('cron runs');
             // find all templates which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
