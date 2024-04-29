@@ -53,7 +53,7 @@ This could lead to unwanted publication or non-publication of pages if the user 
 ### Showing warnings for illogical start and end date settings
 
 As mentioned in the previous section, illogical entries can lead to undesirable publishing behaviour. The user is now informed by warning messages if the entries he has made will have an impact on the next cron run. In other words, the user will be informed/warned if a setting appears illogical and if there will be a change in the publishing status of the page during the next cron run. The user can then decide whether to accept this change or enter a different value in this field.
-This warnings are no errors. The only error will be thrown if the start date entered is before the end date. All other possibilities are allowed, but not always logical and can lead to publication status change on the next cron run.
+This warnings are no errors. The only error will be thrown if the start date entered is after the end date. All other possibilities are allowed, but not always logical and can lead to publication status change on the next cron run.
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/warnings.jpg?v=1)
 
