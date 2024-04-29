@@ -36,7 +36,7 @@ The automatic population of the from field have been fixed now. Thanks to Flo fo
 
 Now publish_from and publish_until fields will be no longer auto populated with Hooks. This change is a result of the discussion in the support forum.
 
-## [1.3.7] 2024-04-26
+## [1.3.7] 2024-04-29
 
 This new version comes with some changes, additions and improvements.
 
