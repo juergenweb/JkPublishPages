@@ -350,9 +350,6 @@
                             if ($from >= $until) {
                                 $f->error($this->_('Publish until date must be after publish from date.'));
                             }
-                            if (($from < time()) && ($until < time())) {
-                                $f->error($this->_('The start and end dates are in the past. This does not make sense. Please remove both dates completely or add a start and/or end date in the future.'));
-                            }
                         }
                     }
                     // delete the temporary session
@@ -487,15 +484,25 @@
                         } else {
                             // status unpublished
                             $text_blocks['nochange'] = sprintf($nochange_text, $unpublish_text);
-                            //if (isset($start_pub)) {
-                            //$text_blocks['euc'] = sprintf($cron_text, $unpublish_text); // unpublish again
-                            //$warnings[] = sprintf($warning_text, $publish_text, $publish_end_text, $past_text, $unpublish_text, $publish_end_text);
-                            //}
                         }
                     }
                 }
 
-                // remove all other array items if "nochange" key is present
+                // Special case for start date in the future and end date in the past
+                // This case needs a special treatment for the output
+                if ((count($text_blocks) === 3) && ($this->checkForArrayKeysByName($text_blocks, ['suc', 'spd', 'euc']))) {
+                    //$warnings = []; // no warnings because an error has been thrown
+                    $text_blocks = [];
+                    if ($page->is(Page::statusUnpublished)) {
+                        // clear the array first
+                        $text_blocks['nochange'] = sprintf($nochange_text, $unpublish_text);
+                    } else {
+                        $text_blocks['nochange'] = sprintf($nochange_text, $publish_text);
+                    }
+                }
+
+
+                // remove all other array items and warnings if "nochange" key is present
                 if (array_key_exists('nochange', $text_blocks)) {
                     $value = $text_blocks['nochange'];
                     $text_blocks = [];
@@ -503,34 +510,6 @@
                     // remove all warnings
                     $warnings = [];
                 }
-           
-                // create text for special cases for combined start and end date
-
-                // 1) start date and end date are in the past
-                if ((count($text_blocks) === 2) &&
-                    (($this->checkForArrayKeysByName($text_blocks, ['spc', 'euc'])) ||
-                        ($this->checkForArrayKeysByName($text_blocks, ['spd', 'euc'])))) {
-                    $warnings = [];
-                    if ($page->is(Page::statusUnpublished)) {
-                        $text_blocks = [];// clear the array first
-                        $text_blocks['nochange'] = sprintf($nochange_text, $unpublish_text);
-                    } else {
-                        $text_blocks = [sprintf($cron_text, $unpublish_text)]; // unpublish during the next cron run
-                    }
-                }
-
-                // 2) start date is in the future and end date is in the past
-                if ((count($text_blocks) === 3) && ($this->checkForArrayKeysByName($text_blocks, ['suc', 'spd', 'euc']))) {
-                    $warnings = []; // no warnings because an error has been thrown
-                    if ($page->is(Page::statusUnpublished)) {
-                        $text_blocks = []; // clear the array first
-                        $text_blocks['nochange'] = sprintf($nochange_text, $unpublish_text);
-                    } else {
-                        $text_blocks = [sprintf($cron_text, $unpublish_text)]; // unpublish during the next cron run
-                    }
-                }
-
-                // 3) start and end date are in the past -> remove warning
 
 
                 // Output the warnings if present
@@ -555,7 +534,6 @@
                 } else {
                     return null;
                 }
-
 
             }
             return null;
@@ -638,7 +616,7 @@
          */
         protected function runJkPublishPages(): void
         {
-
+            bd('cron runs');
             // find all templates which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
