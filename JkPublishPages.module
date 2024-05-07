@@ -572,7 +572,7 @@
                 }
 
                 if ($status_text != '') {
-                    $text = sprintf($this->_('Page is currently %s.'), strtoupper($status_text)) . '<br>';
+                    $text = sprintf($this->_('Page is currently %s.'), '<b>'.$status_text.'</b>') . '<br>';
                 } else {
                     $text = '';
                 }
