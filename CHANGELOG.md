@@ -83,6 +83,8 @@ Flo, from the Support forum pointed my intention to the following issue: Indepen
 
 To prevent such a behavior, I have added a publication check also inside the page tree. I you click fe on the publish button, a validation runs in the background and checks the values of the 2 publishing fields. If these value allow you to set the page to published, everything is fine and the publish status will be saved via Ajax. If not, you will get an error message with further instructions inside a modal container and the status will not be saved.
 
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/pagetree.png?v=1)
+
 ### Adding more safety to save publishing field values
 
 This is also another idea from Flo.
@@ -100,14 +102,17 @@ To "play safe" and prevent such a scenario, I have replaced the warnings by erro
 
 In addition I have also added a functionality to change the publish status according to the settings. This means, if a page has been saved as "unpublished" but the Cronjob would make this page "published" on the next run, the page will be immediately saved as published and the user can change this afterwards, if this is not the desired behavior.
 
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/field_deletion.png?v=1)
 
 Example: The user will save this page as "unpublished", but his publish settings only allow to publish the page, then this page will be immediately published at the saving process, but the user will get an information, that the prefered status could not be saved.
 
-![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/warnings.jpg?v=1)
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/status_change_warning.png?v=1)
 
 
 ### Adding publishing info as subheader under the main headline in the admin
 
 This is another addition which helps the user to identify, what will be happen with this page in the future. 
+
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/subheadline.png?v=1)
 
 
