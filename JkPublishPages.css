@@ -8,3 +8,9 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+p.delete-info {
+    background: #d8eafc;
+    padding: 5px;
+    color: #1e87f0;
+}
