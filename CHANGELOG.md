@@ -68,3 +68,42 @@ Below the label of the publication fieldset, you will now find information about
 If the status of a page is changed in the future, you will find a small clock symbol next to the page title in the page tree. If you move the mouse pointer over this symbol, you will receive more detailed information about future activities. 
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/pagetree.jpg?v=1)
+
+## [1.3.8] 2024-05-13
+
+This new version comes with a bugfix, a new addition and a safety improvement..
+
+### Bug fix of German Umlaut problem in words using only capital letters
+
+The status of the page has been displayed in the schedule plan with capital letters in the previous version of this module. This was done with the strtoupper() function in PHP and leads to a problem with German Umlauts. Instead of using the mb_strtoupper() function to solve this problem, I have decided to display the status with bold letters. So there is no longer a problem with German Umlauts.
+
+### Fixing of changing the publishing status of a page in the page tree
+
+Flo, from the Support forum pointed my intention to the following issue: Independent what status of the page is saved in the database and independent of what values had been set inside the publishing fields, you have always the possibility to change the publishing status in the page tree. This is not intended, because it ignores all field validations and a possibly wrong status could be set with unwanted side effects.
+
+To prevent such a behavior, I have added a publication check also inside the page tree. I you click fe on the publish button, a validation runs in the background and checks the values of the 2 publishing fields. If these value allow you to set the page to published, everything is fine and the publish status will be saved via Ajax. If not, you will get an error message with further instructions inside a modal container and the status will not be saved.
+
+### Adding more safety to save publishing field values
+
+This is also another idea from Flo.
+
+In the previous version, the validation of this module only shows warnings, if a user has entered illogical values into the publishing fields. This could lead to unwanted publishing of pages in the future, if the user ignores this warnings.
+
+This could be a massive problem, if the page contains sensitive content and will be published accidentaly before a given date. Lets assume you want to set a special offer for a product online, but your customer does not allow to make this offer public until a given date. 
+
+If an incorrect setting has been made and the warnings have been ignored, it could happen that the cronjob publishes this offer before the allowed date.
+
+To "play safe" and prevent such a scenario, I have replaced the warnings by errors and the start field value will be removed (cleared) before saving in certain situations to stop the Cronjob of publishing a page accidentaly.
+In addition I have also added a functionality to change the publish status according to the settings. This means, if a page has been saved as "unpublished" but the Cronjob would make this page "published" on the next run, the page will be immediately saved as published and the user can change this afterwards, if this is not the desired behavior.
+
+
+Example: The user will save this page as "unpublished", but his publish settings only allow to publish the page, then this page will be immediately published at the saving process, but the user will get an information, that the prefered status could not be saved.
+
+
+
+
+### Adding publishing info as subheader under the main headline in the admin
+
+This is another addition which helps the user to identify, what will be happen with this page in the future. 
+
+
