@@ -126,7 +126,7 @@ Below the label of the publication fieldset, you will find information about the
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/publicationinfo.jpg?v=1)
 
-## Get additional status information as a subheadline below the main headling
+## Get additional status information as a subheadline below the main headline
 
 For better visibility for the editor of a page, the schedule plan information will also be displayed below the main headline.
 
