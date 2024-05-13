@@ -71,7 +71,7 @@ If the status of a page is changed in the future, you will find a small clock sy
 
 ## [1.3.8] 2024-05-13
 
-This new version comes with a bugfix, a new addition and a safety improvement..
+This new version comes with a bugfix, 2 new additions and a safety improvement.
 
 ### Bug fix of German Umlaut problem in words using only capital letters
 
