@@ -97,12 +97,9 @@ If an incorrect setting has been made and the warnings have been ignored, it cou
 
 To "play safe" and prevent such a scenario, I have replaced the warnings by errors and the start field value will be removed (cleared) before saving in certain situations to stop the Cronjob of publishing a page accidentaly.
 
-
-![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/pagetree.jpg?v=1)
+![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/field_deletion.png?v=1)
 
 In addition I have also added a functionality to change the publish status according to the settings. This means, if a page has been saved as "unpublished" but the Cronjob would make this page "published" on the next run, the page will be immediately saved as published and the user can change this afterwards, if this is not the desired behavior.
-
-![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/field_deletion.png?v=1)
 
 Example: The user will save this page as "unpublished", but his publish settings only allow to publish the page, then this page will be immediately published at the saving process, but the user will get an information, that the prefered status could not be saved.
 
