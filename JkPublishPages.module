@@ -175,7 +175,7 @@
             $this->addHookAfter('InputfieldCheckboxes::render', $this, 'addToggle');
             $this->addHookAfter('ProcessPageEdit::buildForm', $this, 'hideInputfield');
             $this->addHookAfter('Inputfield::render', $this, 'showParentPageName');
-            $this->addHookAfter('Inputfield::render', $this, 'addValueDeletedInfo');
+
 
             // Hooks for preventing unwanted publishing/unpublishing of pages according to publishing settings
             $this->addHookBefore('ProcessPageList::ajaxAction', $this, 'changeStatusPageTree');
@@ -348,31 +348,6 @@
             }
         }
 
-        protected function addValueDeletedInfo(HookEvent $event): void
-        {
-
-            $field = $event->object;
-            if ($this->wire('session')->get('jkpp-deleteinfo')) {
-
-                if ($field->name != $this->wire('session')->get('jkpp-deleteinfo')[0]) return;
-
-                // original markup of this field
-                $return = $event->return;
-
-                $old_value = $this->wire('session')->get('jkpp-deleteinfo')[1];
-
-                $text = '';
-                // Populate back the return value
-                if ($this->wire('session')->get('jkpp-deleteinfo')[0] == 'jk_publish_from') {
-                    $text = $this->_('For safety reasons: The value of this field has already been cleared by this module to prevent accidental publishing by the cronjob on the next run.');
-                }
-
-                $text .= ' ' . sprintf($this->_('Your previously entered value: %s.'), $old_value);
-                $info_text = '<p class="delete-info"><i class="fa fa-info-circle"></i> ' . $text . '</p>';
-                $event->return = $return . $info_text;
-                $this->wire('session')->remove('jkpp-deleteinfo');
-            }
-        }
 
         /**
          * Method to check if a button inside the page tree has been clicked
@@ -638,11 +613,6 @@
                 $event->arguments(0, $page);
             }
 
-            if ($this->wire('session')->get('jkpp-delete')) {
-                $fieldName = $this->wire('session')->get('jkpp-delete');
-                $page->$fieldName = '';
-                $this->wire('session')->remove('jkpp-delete');
-            }
         }
 
         /**
@@ -671,7 +641,6 @@
 
                 // set default values
                 $comparison = false;
-                $delete_start_field = false;
                 $validation = true; // set default validation result to true - everything is ok;
                 $pub_code = $this->getPublishingCode($start_ts, $end_ts);
 
@@ -715,7 +684,6 @@
                         if ($action_publish) {
                             // page should be published
                             if ($start_ts > time()) {
-                                bd('1');
                                 // value is in the future -> error
                                 $validation = false;
                                 $msg[] = sprintf($save_page_with_status, $published_text, $past_text, $empty_text);
@@ -723,10 +691,26 @@
                         } else {
                             // page should be unpublished
                             if ($start_ts <= time()) {
+                                if (!is_null($end_ts)) {
+
+                                    if ($end_ts <= time()) {
+                                        // should be unpublished
+                                        $validation = true;
+                                        //should be published
+                                        if ($wanted_action == 1)
+                                            $validation = false;
+                                    } else {
+                                        if ($wanted_action == -1)
+                                            $validation = false;
+                                    }
+                                } else {
+                                    $validation = false;
+                                }
+
                                 // value is in the past or in the present -> error
-                                $validation = false;
-                                $msg[] = sprintf($save_page_with_status, $unpublished_text, $future_text, $empty_text);
-                                $delete_start_field = true;
+                                if (!$validation)
+                                    $msg[] = sprintf($save_page_with_status, $unpublished_text, $future_text, $empty_text);
+
                             }
                         }
 
@@ -755,7 +739,6 @@
                                 // value is in the past or in the present -> error
                                 $validation = false;
                                 $msg[] = sprintf($save_page_with_status, $published_text, $future_text, $empty_text);
-                                $delete_start_field = true;
 
                             }
                         }
@@ -769,10 +752,9 @@
 
                     $msg[] = $this->_('The value of the the start publishing field must be before the value of the end of publishing field.');
                     $msg[] = sprintf($this->_('You have entered "%s", which is after the end date "%s".'), $input->jk_publish_from, $input->jk_publish_until);
-                    // set status to unpublished
-                    $delete_start_field = true;
 
                 } else if (!$validation) {
+                    
                     $msg[] = sprintf($old_date_text, $input->$field_name, $tense);
                 }
 
@@ -801,11 +783,6 @@
                         $this->warning(sprintf($this->_('Please note: You have tried to save this page with status "%s", but according to your publish settings, this page could only be saved with status "%s"'), $status_action, $saved_status));
                     }
 
-                }
-
-                if ($delete_start_field && $status == 'unpub') {
-                    $this->wire('session')->set('jkpp-delete', 'jk_publish_from');
-                    $this->wire('session')->set('jkpp-deleteinfo', ['jk_publish_from', $input->jk_publish_from]);
                 }
 
             }
@@ -912,8 +889,7 @@
 
                 // Special case for start date in the future and end date in the past
                 // This case needs a special treatment for the output
-                if ((count($text_blocks) === 3) && ($this->checkForArrayKeysByName($text_blocks, ['suc', 'spd', 'euc']))) {
-
+                if (($start_date && $end_date) && ($start_date > $end_date)) {
                     $text_blocks = [];
                     if ($page->is(Page::statusUnpublished)) {
                         // clear the array first
@@ -1025,6 +1001,7 @@
          */
         protected function runJkPublishPages(): void
         {
+
             // find all templates which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
