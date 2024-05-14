@@ -105,11 +105,15 @@ Example: The user will save this page as "unpublished", but his publish settings
 
 ![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/status_change_warning.png?v=1)
 
+## [1.3.9] 2024-05-14
 
-### Adding publishing info as subheader under the main headline in the admin
+### Reverting deletion of start field value to prevent accidential publication
 
-This is another addition which helps the user to identify, what will be happen with this page in the future. 
+There is no need to delete the start field value, as the module will change the publication status to the appropriate value beforehand. In this case, the cronjob does not publish a page if it has the status unpublished and the times set are not within the time range. This was therefore an unnecessary step that has now been removed.
 
-![alt text](https://raw.githubusercontent.com/juergenweb/JkPublishPages/main/images/subheadline.png?v=1)
+What didn't fit were the texts for the publication schedule plan in all scenarios. In some circumstances, the text did not exactly match the action that the cronjob will perform in the future. This has now been changed. To be more precise: This was the case if the start date was before the end date. In this case the module throws an error, sets the status to "unpublished forever"  and the Cronjob does not do anything.
 
+But the information that has been displayed was "will be published on.. , will be unpublished on....". This was fixed now and the text "Page remains unpublished" will be displayed instead, which is exactly what will happen.
+
+As always, please keep an eye out if something is not working as expected and report any problems you discover.
 
