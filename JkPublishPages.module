@@ -142,6 +142,7 @@
          */
         public function init(): void
         {
+
             $this->page = $this->wire('pages')->get($this->input->get->id);
 
             $this->publish_code = $this->getPublishingCode($this->page->jk_publish_from, $this->page->jk_publish_until);
@@ -629,15 +630,20 @@
             if ($f->name == 'jk_publish_from' || $f->name == 'jk_publish_until') {
 
                 $input = $this->wire('input');
+                $datetime = $this->wire('datetime');
 
                 // convert start and end date in specific format to timestamp
                 $startdate_field = $this->wire('fields')->get('jk_publish_from');
-                $startdate_format = implode(' ', [$startdate_field->dateInputFormat, $startdate_field->timeInputFormat]);
-                $untildate_field = $this->wire('fields')->get('jk_publish_until');
-                $untildate_format = implode(' ', [$untildate_field->dateInputFormat, $untildate_field->timeInputFormat]);
+                $start_date_format = $startdate_field->dateInputFormat;
+                $start_time_format = $startdate_field->timeInputFormat;
+                $start_format = implode(' ', [$start_date_format, $start_time_format]);
+                $start_ts = $datetime->stringToTimestamp($input->jk_publish_from, $start_format);
 
-                $start_ts = $this->convertDateValue($input->jk_publish_from, $startdate_format);
-                $end_ts = $this->convertDateValue($input->jk_publish_until, $untildate_format);
+                $enddate_field = $this->wire('fields')->get('jk_publish_until');
+                $end_date_format = $enddate_field->dateInputFormat;
+                $end_time_format = $enddate_field->timeInputFormat;
+                $end_format = implode(' ', [$end_date_format, $end_time_format]);
+                $end_ts = $datetime->stringToTimestamp($input->jk_publish_until, $end_format);
 
                 // set default values
                 $comparison = false;
@@ -679,7 +685,7 @@
                     // check if the date entered is in the past or in the future
                     $tense = ($start_ts <= time()) ? $past_text : $future_text;
 
-                    if (!is_null($start_ts)) {
+                    if (!empty($start_ts)) {
                         // run only if the start date field contains a value
                         if ($action_publish) {
                             // page should be published
@@ -730,7 +736,7 @@
                     // check if the date entered is in the past or in the future
                     $tense = ($end_ts <= time()) ? $past_text : $future_text;
 
-                    if (!is_null($end_ts)) {
+                    if (!empty($end_ts)) {
                         // run only if the start date field contains a value
                         if ($action_publish) {
                             // page should be published
