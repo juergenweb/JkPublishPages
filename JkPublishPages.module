@@ -48,7 +48,7 @@
                 'summary' => 'Publish and unpublish pages depending on dates and times using LazyCron.',
                 'author' => 'Jürgen Kern',
                 'href' => 'https://github.com/juergenweb/JkPublishPages',
-                'version' => '1.3.9',
+                'version' => '1.3.10',
                 'singular' => true,
                 'autoload' => true,
                 'requires' => [
@@ -617,6 +617,48 @@
         }
 
         /**
+         * Convert $input from different input types to a timestamp
+         * @param string $fieldName
+         * @return int|null
+         * @throws \ProcessWire\WireException
+         * @throws \ProcessWire\WirePermissionException
+         */
+        private function convertDateToTimeStamp(string $fieldName): int|null
+        {
+            $input = $this->wire('input');
+            if($input->$fieldName){
+
+
+            $date = $this->wire('datetime');
+            $field = $this->wire('fields')->get($fieldName);
+            $input_type = $field->inputType;
+
+            switch($input_type){
+                case('html'):
+                    $date_string = $input->$fieldName;
+                    $timefield_name = $fieldName.'__time';
+                    $time_string = $input->$timefield_name ;
+                    $datetime = implode(' ', [$date_string, $time_string]);
+                    $dateformat = 'Y-m-d H:i';
+                    break;
+                case('select'):
+                    $datetime = $input->$fieldName;
+                    $dateformat = 'Y-m-d H:i';
+                    break;
+                case('text'):
+                    $datetime = $input->$fieldName;
+                    $date_format = $field->dateInputFormat;
+                    $time_format = $field->timeInputFormat;
+                    $dateformat = implode(' ', [$date_format, $time_format]);
+                    break;
+            }
+
+            return $date->stringToTimestamp($datetime, $dateformat);
+            }
+            return null;
+        }
+
+        /**
          * Method to validate if publish_until is after publish_from, otherwise show an error at the publish_until field
          * @param HookEvent $event
          * @return void
@@ -630,20 +672,9 @@
             if ($f->name == 'jk_publish_from' || $f->name == 'jk_publish_until') {
 
                 $input = $this->wire('input');
-                $datetime = $this->wire('datetime');
 
-                // convert start and end date in specific format to timestamp
-                $startdate_field = $this->wire('fields')->get('jk_publish_from');
-                $start_date_format = $startdate_field->dateInputFormat;
-                $start_time_format = $startdate_field->timeInputFormat;
-                $start_format = implode(' ', [$start_date_format, $start_time_format]);
-                $start_ts = $datetime->stringToTimestamp($input->jk_publish_from, $start_format);
-
-                $enddate_field = $this->wire('fields')->get('jk_publish_until');
-                $end_date_format = $enddate_field->dateInputFormat;
-                $end_time_format = $enddate_field->timeInputFormat;
-                $end_format = implode(' ', [$end_date_format, $end_time_format]);
-                $end_ts = $datetime->stringToTimestamp($input->jk_publish_until, $end_format);
+                $start_ts = $this->convertDateToTimeStamp('jk_publish_from');
+                $end_ts = $this->convertDateToTimeStamp('jk_publish_until');
 
                 // set default values
                 $comparison = false;
@@ -721,7 +752,7 @@
                         }
 
                         // check if start value is after end value
-                        if (!is_null($end_ts)) {
+                        if (!empty($end_ts)) {
                             $comparison = ($start_ts > $end_ts);
                         }
 
