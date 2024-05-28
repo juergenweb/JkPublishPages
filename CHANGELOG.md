@@ -117,3 +117,10 @@ But the information that has been displayed was "will be published on.. , will b
 
 As always, please keep an eye out if something is not working as expected and report any problems you discover.
 
+## [1.3.10] 2024-05-28
+
+### Wrong timestamp calculation by using html or select input type fixed
+
+The date input field validation has worked properly only if input type text was selected. If you have chosen "html" or "select" the date will not be converted to a timestamp correctly.
+The reason was that the dateformat used by this input types is different from the default text input type. 
+Therefore every input type needs its own treatment to get the correct timestamp. This has been now solved by creating a new method to convert the date to a timestamp depending on the input type.
