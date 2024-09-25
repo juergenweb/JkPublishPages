@@ -628,19 +628,11 @@
             $input = $this->wire('input');
             if($input->$fieldName){
 
-
             $date = $this->wire('datetime');
             $field = $this->wire('fields')->get($fieldName);
             $input_type = $field->inputType;
 
             switch($input_type){
-                case('html'):
-                    $date_string = $input->$fieldName;
-                    $timefield_name = $fieldName.'__time';
-                    $time_string = $input->$timefield_name ;
-                    $datetime = implode(' ', [$date_string, $time_string]);
-                    $dateformat = 'Y-m-d H:i';
-                    break;
                 case('select'):
                     $datetime = $input->$fieldName;
                     $dateformat = 'Y-m-d H:i';
@@ -650,6 +642,13 @@
                     $date_format = $field->dateInputFormat;
                     $time_format = $field->timeInputFormat;
                     $dateformat = implode(' ', [$date_format, $time_format]);
+                    break;
+               default: // default is HTML
+                    $date_string = $input->$fieldName;
+                    $timefield_name = $fieldName.'__time';
+                    $time_string = $input->$timefield_name ;
+                    $datetime = implode(' ', [$date_string, $time_string]);
+                    $dateformat = 'Y-m-d H:i';
                     break;
             }
 
