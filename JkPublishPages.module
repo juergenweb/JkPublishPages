@@ -429,30 +429,30 @@
          */
         protected function extendTitleTag(HookEvent $event): void
         {
+            if(!$this->wire('config')->ajax) {
+                // Get page being edited
+                $page = $event->object->getPage();
 
-            // Get page being edited
-            $page = $event->object->getPage();
+                // Only use on pages with publishing fields
+                if (!$page->hasField('jk_publish_from')) return;
 
-            // Only use on pages with publishing fields
-            if (!$page->hasField('jk_publish_from')) return;
+                // modify the existing headline
+                $headline = $this->wire('processHeadline');
 
-            // modify the existing headline
-            $headline = $this->wire('processHeadline');
+                $action = $this->getScheduleAction($page, true);
 
-            $action = $this->getScheduleAction($page, true);
+                $icon = '';
+                $subHeadline = '';
+                if (!empty($action)) {
+                    $icon = ' (*)';
+                    $subHeadline = '<p class="notes" style="padding: 5px; font-size: 20px;"><i class="fa fa-exclamation-triangle"></i>&nbsp;<sup>*</sup>' . ucfirst($action) . '</p>';
+                }
+                $this->wire('processHeadline', $headline . $icon);
 
-            $icon = '';
-            $subHeadline = '';
-            if (!empty($action)) {
-                $icon = ' (*)';
-                $subHeadline = '<p class="notes" style="padding: 5px; font-size: 20px;"><i class="fa fa-exclamation-triangle"></i>&nbsp;<sup>*</sup>' . ucfirst($action) . '</p>';
+                $return = $event->return;
+
+                $event->return = $subHeadline . $return;
             }
-            $this->wire('processHeadline', $headline . $icon);
-
-            $return = $event->return;
-
-            $event->return = $subHeadline . $return;
-
         }
 
         /**
