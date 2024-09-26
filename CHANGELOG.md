@@ -124,3 +124,7 @@ As always, please keep an eye out if something is not working as expected and re
 The date input field validation has worked properly only if input type text was selected. If you have chosen "html" or "select" the date will not be converted to a timestamp correctly.
 The reason was that the dateformat used by this input types is different from the default text input type. 
 Therefore every input type needs its own treatment to get the correct timestamp. This has been now solved by creating a new method to convert the date to a timestamp depending on the input type.
+
+## [1.3.11] 2024-09-26
+
+Missing "input_html" property for date fields on new installations fixed. 
