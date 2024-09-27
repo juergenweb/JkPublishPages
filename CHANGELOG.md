@@ -131,7 +131,7 @@ Missing "input_html" property for date fields on new installations fixed.
 
 https://github.com/juergenweb/JkPublishPages/issues/2
 
-## [1.3.12] 2024-09-26
+## [1.3.12] 2024-09-27
 
 There was an Ajax error during an image upload if the template contains the date fields of this module. Thanks to ShadowMoses36 for reporting this issue.
 
