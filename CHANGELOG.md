@@ -129,6 +129,8 @@ Therefore every input type needs its own treatment to get the correct timestamp.
 
 Missing "input_html" property for date fields on new installations fixed. 
 
+https://github.com/juergenweb/JkPublishPages/issues/2
+
 ## [1.3.12] 2024-09-26
 
 There was an Ajax error during an image upload if the template contains the date fields of this module. Thanks to ShadowMoses36 for reporting this issue.
@@ -138,4 +140,6 @@ There was a problem during the AJAX call of an image caused by my custom sub-hea
 The headline will be output during the Ajax call too and therefore the image upload Javacript complains about the "unexpected character on line 1 column 1.
 
 This error has been fixed now and image upload works as expected.
+
+https://github.com/juergenweb/JkPublishPages/issues/3
 
