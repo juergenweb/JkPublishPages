@@ -145,4 +145,4 @@ https://github.com/juergenweb/JkPublishPages/issues/3
 
 ## [1.3.13] 2024-09-29
 
-There was a bug on finding pages per stautus on multilanguage sites. The result was that pages will not be correctly published or unpublished according to date settings. As mentioned, this problem occured only on site with multiple languages. This bug has been fixed now. 
+There was a bug when searching pages for a specific status on multilingual websites. The result was that pages will not be correctly published or unpublished according to date settings. As mentioned, this problem occured only on sites with multiple languages. This bug has been fixed now. 
