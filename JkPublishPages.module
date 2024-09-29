@@ -680,6 +680,7 @@
                 $validation = true; // set default validation result to true - everything is ok;
                 $pub_code = $this->getPublishingCode($start_ts, $end_ts);
 
+
                 // text phrases for the error messages
                 $future_text = mb_strtoupper($this->_('future'));
                 $past_text = mb_strtoupper($this->_('past'));
@@ -1037,8 +1038,8 @@
          */
         protected function runJkPublishPages(): void
         {
-
-            // find all templates which have a start date field
+         
+            // find all templates, which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
                 if ($template->hasField('jk_publish_from')) {
@@ -1065,8 +1066,23 @@
             // 2) jk_publish_from<=now, jk_publish_until<=now
             // 4) jk_publish_from=, jk_publish_until<=now
 
-            $pagesToUnpublish = wire("pages")->find($selectors . "status=published,$templateSelector(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
-            $pagesToPublish = wire("pages")->find($selectors . "status=unpublished,$templateSelector(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)");
+            $pagesToUnpublish = wire("pages")->find($selectors . $templateSelector.",(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
+
+            // remove all pages, which status is unpublished at the moment
+            foreach($pagesToUnpublish as $key => $p){
+                if($p->isUnpublished()){
+                    $pagesToUnpublish->remove($key);
+                }
+            }
+
+            $pagesToPublish = wire("pages")->find($selectors . $templateSelector.",(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)");
+
+            // remove all pages, which status is published at the moment
+            foreach($pagesToPublish as $key => $p){
+                if(!$p->isUnpublished()){
+                    $pagesToPublish->remove($key);
+                }
+            }
 
             $results = $pagesToUnpublish->import($pagesToPublish);
 
@@ -1075,6 +1091,7 @@
                 if ($p->isUnpublished()) {
                     $p->removeStatus(Page::statusUnpublished);
                 } else {
+
                     switch ($p->jk_action_after->id) {
                         case('2'): // move to trash
                             $p->trash();
