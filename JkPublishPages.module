@@ -1038,7 +1038,7 @@
          */
         protected function runJkPublishPages(): void
         {
-         
+
             // find all templates, which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
@@ -1387,7 +1387,7 @@
                 $f->type = $this->modules->get('FieldtypeDatetime');
                 $f->name = 'jk_publish_until';
                 $f->label = $this->_('Publish Until Date');
-                $f->dateOutputFormat = 'd-m-Y H:i:s';
+                $f->dateOutputFormat = 'd-M-Y H:i:s';
                 $f->dateInputFormat = 'd/m/Y';
                 $f->datepicker = 3; // if you want datepicker enabled
                 $f->timeInputFormat = 'H:i';
