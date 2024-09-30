@@ -643,7 +643,7 @@
                     $time_format = $field->timeInputFormat;
                     $dateformat = implode(' ', [$date_format, $time_format]);
                     break;
-               default: // default is HTML
+                case('html'):
                     $date_string = $input->$fieldName;
                     $timefield_name = $fieldName.'__time';
                     $time_string = $input->$timefield_name ;
@@ -1038,7 +1038,7 @@
          */
         protected function runJkPublishPages(): void
         {
-
+            
             // find all templates, which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
@@ -1067,7 +1067,7 @@
             // 4) jk_publish_from=, jk_publish_until<=now
 
             $pagesToUnpublish = wire("pages")->find($selectors . $templateSelector.",(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
-
+           
             // remove all pages, which status is unpublished at the moment
             foreach($pagesToUnpublish as $key => $p){
                 if($p->isUnpublished()){
@@ -1372,6 +1372,8 @@
                 $f->type = $this->modules->get('FieldtypeDatetime');
                 $f->name = 'jk_publish_from';
                 $f->label = $this->_('Publish From Date');
+                $f->inputType = 'html';
+                $f->htmlType = 'datetime';
                 $f->dateOutputFormat = 'd-M-Y H:i:s';
                 $f->dateInputFormat = 'd/m/Y';
                 $f->datepicker = 3; // if you want datepicker enabled
@@ -1387,6 +1389,8 @@
                 $f->type = $this->modules->get('FieldtypeDatetime');
                 $f->name = 'jk_publish_until';
                 $f->label = $this->_('Publish Until Date');
+                $f->inputType = 'html';
+                $f->htmlType = 'datetime';
                 $f->dateOutputFormat = 'd-M-Y H:i:s';
                 $f->dateInputFormat = 'd/m/Y';
                 $f->datepicker = 3; // if you want datepicker enabled
