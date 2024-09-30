@@ -146,3 +146,5 @@ https://github.com/juergenweb/JkPublishPages/issues/3
 ## [1.3.13] 2024-09-29
 
 There was a bug when searching pages for a specific status on multilingual websites. The result was that pages will not be correctly published or unpublished according to date settings. As mentioned, this problem occured only on sites with multiple languages. This bug has been fixed now. 
+
+Writing mistake in date format of inputfield "jk_publish_until" fixed (d-m-Y instead of d-M-Y).
