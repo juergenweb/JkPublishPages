@@ -69,7 +69,7 @@
             $this->actions = [
                 '1' => $this->_('Unpublish the page'),
                 '2' => $this->_('Move page to trash'),
-                '3' => $this->_('Move page as a child of another page'),
+                '3' => $this->_('Move page as a child of another page (page remains published)'),
                 '4' => $this->_('Delete page permanently')
             ];
 
