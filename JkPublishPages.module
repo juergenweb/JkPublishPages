@@ -11,7 +11,7 @@
      * JkPublishPages
      *
      * @author Jürgen K.
-     * @copyright Copyright (c) 2023
+     * @copyright Copyright © 2023
      * @see http://www.processwire.com
      *
      * A module for publish/unpublish pages depending on date and time settings on per page base using Lazy Cron
@@ -34,7 +34,7 @@
         protected array $actions = []; // array that holds all possible actions after publishing has ended
         protected PageArray|null $parent_pages;
 
-        protected int $publish_code = 0; // could the given page be published or not (-1,0,1) according to the date settings
+        protected int $publish_code = 0; // determines if the given page could be published or not (-1,0,1) according to the date settings
         protected Page $page; // the current page, the inputfield lives on
 
         /**
@@ -104,7 +104,7 @@
         }
 
         /**
-         * Get all templates which includes at least one of the module fields
+         * Get all templates, which includes at least one of the module fields
          * Returns an array with the id of the template as the key and the name as value
          * @throws WireException
          */
@@ -118,6 +118,15 @@
                 }
             }
             return $templates;
+        }
+
+        /**
+         * @param \ProcessWire\WireArray|\ProcessWire\Module|\ProcessWire\Wire|\ProcessWire\WireData $field
+         * @return \ProcessWire\Module|\ProcessWire\Wire|\ProcessWire\WireArray|\ProcessWire\WireData
+         */
+        public function getModule(WireArray|Module|Wire|WireData $field): WireData|Wire|Module|WireArray
+        {
+            return $field;
         }
 
         /**
@@ -147,7 +156,6 @@
 
             $this->publish_code = $this->getPublishingCode($this->page->jk_publish_from, $this->page->jk_publish_until);
 
-
             // find all templates that include at least one of the publishing fields and save them to the input_templates array
             $data = $this->wire('modules')->getConfig($this);
             $data['input_templates'] = $this->getTemplatesWithModuleFields();
@@ -164,7 +172,6 @@
             // Hooks for custom validation
             $this->addHookAfter('InputfieldDatetime::processInput', $this, 'validateDates');
 
-
             // Hook the change page list rendering
             $this->addHook("ProcessPageListRender::getPageLabel", $this, 'addPublishIcon');
 
@@ -175,8 +182,7 @@
             $this->addHookAfter('InputfieldPage::getSelectablePages', $this, 'setPageArrayNew');
             $this->addHookAfter('InputfieldCheckboxes::render', $this, 'addToggle');
             $this->addHookAfter('ProcessPageEdit::buildForm', $this, 'hideInputfield');
-            $this->addHookAfter('Inputfield::render', $this, 'showParentPageName');
-
+            $this->addHookBefore('Inputfield::render', $this, 'manipulateLabel');
 
             // Hooks for preventing unwanted publishing/unpublishing of pages according to publishing settings
             $this->addHookBefore('ProcessPageList::ajaxAction', $this, 'changeStatusPageTree');
@@ -187,8 +193,8 @@
             // Hook to manipulate title in the admin
             $this->addHookAfter('ProcessPageEdit::execute', $this, 'extendTitleTag');
 
-
             $this->parent_pages = $this->getParentPages();
+
         }
 
         /**
@@ -208,25 +214,22 @@
         }
 
         /**
-         * Get a PageArray containing all pages that can be set as the new parent for the page that should be moved
+         * Get a PageArray containing all pages that can be set as the new parent for the page that should be moved to
+         * a new position
          * @return PageArray|null
-         * @throws WireException
-         * @throws WirePermissionException
          */
         protected function getParentPages(): PageArray|null
         {
-            // get the current page object
-            $current_page = $this->wire('pages')->get($this->wire('input')->get('id')); // the current page object
-
-            if ($current_page->id > 0) {
+            // run only if the current page object has no id = 0
+            if ($this->page->id > 0) {
 
                 // create the selector to find allowed templates for parent pages
                 $selectors = 'flags!="8",'; // exclude all system templates
-                $selectors .= 'noChildren!=1,'; // exclude all templates which are not allowed to have children
+                $selectors .= 'noChildren!=1,'; // exclude all templates, which are not allowed to have children
 
                 // include only templates which are allowed to be a parent template (if set in the current page template)
-                if ($current_page->template->parentTemplates) {
-                    $selectors .= 'id=' . implode('|', $current_page->template->parentTemplates);
+                if ($this->page->template->parentTemplates) {
+                    $selectors .= 'id=' . implode('|', $this->page->template->parentTemplates);
                 }
 
                 // get all templates filtered by the selectors
@@ -234,7 +237,7 @@
 
                 // Exclude all templates which are not allowed to have the current page as child
                 foreach ($templates as $key => $template) {
-                    if (($template->childTemplates) && (!in_array($current_page->templates_id,
+                    if (($template->childTemplates) && (!in_array($this->page->templates_id,
                             $template->childTemplates))) {
                         $templates->remove($key);
                     }
@@ -243,7 +246,7 @@
                 // create the array that consists of the ids of all allowed templates
                 $templates = $templates->implode('|', 'id');
                 // create the array that consists of the ids of all not allowed pages
-                $exclude_pages = implode('|', [$current_page->id, $current_page->parent_id, 1]);
+                $exclude_pages = implode('|', [$this->page->id, $this->page->parent_id, 1]);
                 return wire('pages')->find('id!=' . $exclude_pages . ',templates_id=' . $templates);
             } else {
                 return null;
@@ -262,7 +265,9 @@
         {
             $field = $event->object;
             if ($field->name == 'jk_move_child') {
+
                 if (($this->parent_pages) && ($this->parent_pages->count)) {
+
                     $event->return = $this->parent_pages;
                 }
             }
@@ -293,58 +298,49 @@
         }
 
         /**
-         * Add the parent page name next to the page name of the specified new parent page
+         * Add the label in the current language if the site is multilanguage and
+         * add the parent page name next to the page name of the specified new parent page if it is set in the configuration
          * @param \ProcessWire\HookEvent $event
          * @return void
          * @throws \ProcessWire\WireException
          * @throws \ProcessWire\WirePermissionException
          */
-        protected function showParentPageName(HookEvent $event): void
+        protected function manipulateLabel(HookEvent $event): void
         {
-            if (($this->input_show_parent) != null) {
-                $field = $event->object;
 
-                // run only on this field
-                if ($field->name === 'jk_move_child') {
+            $field = $event->object;
 
-                    // original markup of this field
-                    $return = $event->return;
+            // run only on this field
+            if ($this->getModule($field)->name === 'jk_move_child') {
+                if ($field->className == 'InputfieldSelect') {
 
-                    // extract the id of the page of the id from the option value attribute
-                    preg_match_all('/(<option[^>]+>)(.*?)(<\/option>)/i', $return, $result);
+                    if ($field->getOptions()) {
 
-                    // create the new options including the parent page name inside the label
-                    $options = [];
-                    foreach ($result[0] as $item) {
-
-                        // extract the label value of the option tag
-                        preg_match('/<(\w+)[^>]*>(.*?)<\/\1>/', $item, $match);
-                        $label = $match[2];
-                        // grab the value of the option tag which contains the id
-                        preg_match("/value='(.*?)'/", $item, $matches);
-                        $id = (int)$matches[1];
-                        // get the page object by its id
-                        $page = $this->wire('pages')->get($id);
-                        // get the parent page object of this page
-                        $parent = $page->parent();
-                        $parentName = $parent->name;
-
-                        // replace the old label by the new one including the parent page name if parent name is not present
-                        if (!str_contains($label, $parentName)) {
-                            $options[] = str_replace($label, $label . '[' . $parentName . ']', $item);
-                        } else {
-                            $options[] = $item;
+                        // check if multilanguage site
+                        $lang_id = null;
+                        if ($this->wire('languages')->count()) {
+                            $lang_id = $this->wire('languages')->getLanguage()->id;
                         }
+                        foreach ($field->getOptions() as $id => $parentName) {
 
+                            if (!is_null($lang_id)) {
+                                $current_pageName = $this->page->getLanguageValue($lang_id, 'name');
+                                $parent_page = $this->wire('pages')->get($id);
+                                $parent_pageName = $parent_page->getLanguageValue($lang_id, 'name');
+                            } else {
+                                $current_pageName = $this->page->name;
+                                $parent_pageName = $this->page->parent->name;
+                            }
+
+                            if (($this->input_show_parent) != null) {
+                                $label = $current_pageName . ' [' . $parent_pageName . ']';
+                            } else {
+                                $label = $current_pageName;
+                            }
+
+                            $field->addOption($id, $label);
+                        }
                     }
-
-                    // add the new options between the old select tag
-                    $options = implode($options);
-                    $select = preg_replace('/(<select.*?>).*?(<\/select>)/', '$1' . $options . '$2', $return);
-
-                    // Populate back the return value
-                    $event->return = $select;
-
                 }
             }
         }
@@ -513,7 +509,7 @@
                 $end_ts = $this->wire('datetime')->stringToTimestamp($enddate, $untildate_format);
             }
 
-            // no entries -> page can be published or unpublished
+            // no entries → page can be published or unpublished
             if (empty($start_ts) && empty($end_ts)) {
                 return 0;
             }
@@ -521,10 +517,10 @@
             // no start, but end date
             if (empty($start_ts)) {
                 if ($end_ts >= $check_ts) {
-                    // end date is in the future -> can be published or unpublished
+                    // end date is in the future → can be published or unpublished
                     return 0;
                 } else {
-                    // end date is in the past -> only unpublished
+                    // end date is in the past → only unpublished
                     return -1;
                 }
             } else {
@@ -532,20 +528,20 @@
                 if (empty($end_ts)) {
 
                     if ($start_ts > $check_ts) {
-                        // start date is in the future -> page must be unpublished
+                        // start date is in the future → page must be unpublished
                         return -1;
                     } else {
-                        // start date is in the past or in the present -> page must be published
+                        // start date is in the past or in the present → page must be published
                         return 1;
                     }
                 } else {
 
-                    // check if the date is between start & end
+                    // check if the date is between start and end
                     if (($check_ts >= $start_ts) && ($check_ts <= $end_ts)) {
-                        // date is in time range -> must be published
+                        // date is in time range → must be published
                         return 1;
                     } else {
-                        // date is not in time range -> must be unpublished
+                        // date is not in time range → must be unpublished
                         return -1;
                     }
                 }
@@ -680,7 +676,6 @@
                 $validation = true; // set default validation result to true - everything is ok;
                 $pub_code = $this->getPublishingCode($start_ts, $end_ts);
 
-
                 // text phrases for the error messages
                 $future_text = mb_strtoupper($this->_('future'));
                 $past_text = mb_strtoupper($this->_('past'));
@@ -721,7 +716,7 @@
                         if ($action_publish) {
                             // page should be published
                             if ($start_ts > time()) {
-                                // value is in the future -> error
+                                // value is in the future → error
                                 $validation = false;
                                 $msg[] = sprintf($save_page_with_status, $published_text, $past_text, $empty_text);
                             }
@@ -731,8 +726,6 @@
                                 if (!is_null($end_ts)) {
 
                                     if ($end_ts <= time()) {
-                                        // should be unpublished
-                                        $validation = true;
                                         //should be published
                                         if ($wanted_action == 1)
                                             $validation = false;
@@ -744,7 +737,7 @@
                                     $validation = false;
                                 }
 
-                                // value is in the past or in the present -> error
+                                // value is in the past or in the present → error
                                 if (!$validation)
                                     $msg[] = sprintf($save_page_with_status, $unpublished_text, $future_text, $empty_text);
 
@@ -773,7 +766,7 @@
                             // page should be published
                             if ($end_ts <= time()) {
 
-                                // value is in the past or in the present -> error
+                                // value is in the past or in the present → error
                                 $validation = false;
                                 $msg[] = sprintf($save_page_with_status, $published_text, $future_text, $empty_text);
 
@@ -834,7 +827,7 @@
          */
         protected function addPublishIcon(HookEvent $event): void
         {
-            // get current list page with pagetree
+            // get the current list page with pagetree
             $return = $event->return;
             $page = $event->arguments(0);
 
@@ -1208,7 +1201,7 @@
                         $f->save($property);
                     }
                 }
-                // only for multi-language site -> save the select options in the given language from the csv file
+                // only for multi-language site → save the select options in the given language from the csv file
                 if (($this->wire('languages')) && ($fieldName == 'jk_action_after')) {
 
                     //get the text-domain
