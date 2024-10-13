@@ -67,7 +67,7 @@
 
             // create the action array
             $this->actions = [
-                '1' => $this->_('No action'),
+                '1' => $this->_('Unpublish the page'),
                 '2' => $this->_('Move page to trash'),
                 '3' => $this->_('Move page as a child of another page'),
                 '4' => $this->_('Delete page permanently')
@@ -429,7 +429,7 @@
          */
         protected function extendTitleTag(HookEvent $event): void
         {
-            if(!$this->wire('config')->ajax) {
+            if (!$this->wire('config')->ajax) {
                 // Get page being edited
                 $page = $event->object->getPage();
 
@@ -626,33 +626,33 @@
         private function convertDateToTimeStamp(string $fieldName): int|null
         {
             $input = $this->wire('input');
-            if($input->$fieldName){
+            if ($input->$fieldName) {
 
-            $date = $this->wire('datetime');
-            $field = $this->wire('fields')->get($fieldName);
-            $input_type = $field->inputType;
+                $date = $this->wire('datetime');
+                $field = $this->wire('fields')->get($fieldName);
+                $input_type = $field->inputType;
 
-            switch($input_type){
-                case('select'):
-                    $datetime = $input->$fieldName;
-                    $dateformat = 'Y-m-d H:i';
-                    break;
-                case('text'):
-                    $datetime = $input->$fieldName;
-                    $date_format = $field->dateInputFormat;
-                    $time_format = $field->timeInputFormat;
-                    $dateformat = implode(' ', [$date_format, $time_format]);
-                    break;
-                case('html'):
-                    $date_string = $input->$fieldName;
-                    $timefield_name = $fieldName.'__time';
-                    $time_string = $input->$timefield_name ;
-                    $datetime = implode(' ', [$date_string, $time_string]);
-                    $dateformat = 'Y-m-d H:i';
-                    break;
-            }
+                switch ($input_type) {
+                    case('select'):
+                        $datetime = $input->$fieldName;
+                        $dateformat = 'Y-m-d H:i';
+                        break;
+                    case('text'):
+                        $datetime = $input->$fieldName;
+                        $date_format = $field->dateInputFormat;
+                        $time_format = $field->timeInputFormat;
+                        $dateformat = implode(' ', [$date_format, $time_format]);
+                        break;
+                    case('html'):
+                        $date_string = $input->$fieldName;
+                        $timefield_name = $fieldName . '__time';
+                        $time_string = $input->$timefield_name;
+                        $datetime = implode(' ', [$date_string, $time_string]);
+                        $dateformat = 'Y-m-d H:i';
+                        break;
+                }
 
-            return $date->stringToTimestamp($datetime, $dateformat);
+                return $date->stringToTimestamp($datetime, $dateformat);
             }
             return null;
         }
@@ -791,7 +791,7 @@
                     $msg[] = sprintf($this->_('You have entered "%s", which is after the end date "%s".'), $input->jk_publish_from, $input->jk_publish_until);
 
                 } else if (!$validation) {
-                    
+
                     $msg[] = sprintf($old_date_text, $input->$field_name, $tense);
                 }
 
@@ -1038,7 +1038,7 @@
          */
         protected function runJkPublishPages(): void
         {
-            
+
             // find all templates, which have a start date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
@@ -1066,20 +1066,20 @@
             // 2) jk_publish_from<=now, jk_publish_until<=now
             // 4) jk_publish_from=, jk_publish_until<=now
 
-            $pagesToUnpublish = wire("pages")->find($selectors . $templateSelector.",(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
-           
+            $pagesToUnpublish = wire("pages")->find($selectors . $templateSelector . ",(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
+
             // remove all pages, which status is unpublished at the moment
-            foreach($pagesToUnpublish as $key => $p){
-                if($p->isUnpublished()){
+            foreach ($pagesToUnpublish as $key => $p) {
+                if ($p->isUnpublished()) {
                     $pagesToUnpublish->remove($key);
                 }
             }
 
-            $pagesToPublish = wire("pages")->find($selectors . $templateSelector.",(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)");
+            $pagesToPublish = wire("pages")->find($selectors . $templateSelector . ",(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)");
 
             // remove all pages, which status is published at the moment
-            foreach($pagesToPublish as $key => $p){
-                if(!$p->isUnpublished()){
+            foreach ($pagesToPublish as $key => $p) {
+                if (!$p->isUnpublished()) {
                     $pagesToPublish->remove($key);
                 }
             }
