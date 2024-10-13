@@ -318,6 +318,7 @@
 
                         // check if multilanguage site
                         $lang_id = null;
+
                         if ($this->wire('languages')->count()) {
                             $lang_id = $this->wire('languages')->getLanguage()->id;
                         }
@@ -330,14 +331,14 @@
                                 $parent_pageName = $parent_page->getLanguageValue($lang_id, 'name');
                                 $parent_parent_pageName = $parent_parent_page->getLanguageValue($lang_id, 'name');
                             } else {
-                                $current_pageName = $parent_page->name;
+                                $parent_pageName = $parent_page->name;
                                 $parent_parent_pageName = $parent_parent_page->name;
                             }
+                            $label = $parent_pageName;
 
+                            // add parent of parent in parenthesis
                             if (($this->input_show_parent) != null) {
-                                $label = $parent_pageName . ' [' . $parent_parent_pageName . ']';
-                            } else {
-                                $label = $parent_pageName;
+                                $label = $label . ' [' . $parent_parent_pageName . ']';
                             }
 
                             $field->addOption($id, $label);
