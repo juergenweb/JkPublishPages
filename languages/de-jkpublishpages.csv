@@ -1,7 +1,7 @@
 en,de,description,file,hash
 "Unpublish the page","Die Veröffentlichung der Seite aufheben",,site/modules/JkPublishPages/JkPublishPages.module,82378f8ff7a2fd9a9604817d98d12067
 "Move page to trash","Seite in den Mülleimer verschieben",,site/modules/JkPublishPages/JkPublishPages.module,7abd7277f9a10193f5586acbe6eb428f
-"Move page as a child of another page","Verschiebe die Seite als Kind zu einer anderen Seite",,site/modules/JkPublishPages/JkPublishPages.module,0a799a1d0fa08efbe84aa4fc51ead413
+"Move page as a child of another page (page remains published)","Verschiebe die Seite als Kind zu einer anderen Seite (Seite bleibt veröffentlicht)",,site/modules/JkPublishPages/JkPublishPages.module,66d3d080e147f29bc4401f9454ceb86b
 "Delete page permanently","Seite dauerhaft löschen",,site/modules/JkPublishPages/JkPublishPages.module,95ed993384ff8861b2c4493878dc041e
 "Un/check all","Alle markieren/leeren",,site/modules/JkPublishPages/JkPublishPages.module,d6dc9d4a5a6ad2541a3fd0372484f2e9
 "The publishing settings of this page do not allow you to manually publish this page now.","Die Veröffentlichungseinstellungen dieser Seite erlauben es Ihnen nicht, diese Seite jetzt manuell zu veröffentlichen.",,site/modules/JkPublishPages/JkPublishPages.module,c1b22cf38570f67f406795574b11b941
