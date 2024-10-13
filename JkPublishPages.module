@@ -324,7 +324,7 @@
                         }
 
                         foreach ($field->getOptions() as $id => $parentName) {
-                            bd($id);
+
                             $parent_page = $this->wire('pages')->get($id);
                             $parent_parent_page = $parent_page->parent;
 
@@ -337,7 +337,7 @@
                             }
                             $label = $parent_pageName;
 
-                            // add parent of parent in parenthesis
+                            // add parent of parent in parentheses
                             if (($this->input_show_parent) != null) {
                                 $label = $label . ' [' . $parent_parent_pageName . ']';
                             }
