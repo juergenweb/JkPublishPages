@@ -316,10 +316,9 @@
 
                     if ($field->getOptions()) {
 
-                        // check if multilanguage site
                         $lang_id = null;
 
-                        // check if language module is installed
+                        // check if language module is installed and set id of language 
                         if ($this->wire('languages')) {
                             $lang_id = $this->wire('languages')->getLanguage()->id;
                         }
