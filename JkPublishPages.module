@@ -321,21 +321,23 @@
                         if ($this->wire('languages')->count()) {
                             $lang_id = $this->wire('languages')->getLanguage()->id;
                         }
+
                         foreach ($field->getOptions() as $id => $parentName) {
+                            $parent_page = $this->wire('pages')->get($id)->parent;
+                            $parent_parent_page = $parent_page->parent;
 
                             if (!is_null($lang_id)) {
-                                $current_pageName = $this->page->getLanguageValue($lang_id, 'name');
-                                $parent_page = $this->wire('pages')->get($id);
                                 $parent_pageName = $parent_page->getLanguageValue($lang_id, 'name');
+                                $parent_parent_pageName = $parent_parent_page->getLanguageValue($lang_id, 'name');
                             } else {
-                                $current_pageName = $this->page->name;
-                                $parent_pageName = $this->page->parent->name;
+                                $current_pageName = $parent_page->name;
+                                $parent_parent_pageName = $parent_parent_page->name;
                             }
 
                             if (($this->input_show_parent) != null) {
-                                $label = $current_pageName . ' [' . $parent_pageName . ']';
+                                $label = $parent_pageName . ' [' . $parent_parent_pageName . ']';
                             } else {
-                                $label = $current_pageName;
+                                $label = $parent_pageName;
                             }
 
                             $field->addOption($id, $label);
