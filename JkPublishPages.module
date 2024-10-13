@@ -319,7 +319,8 @@
                         // check if multilanguage site
                         $lang_id = null;
 
-                        if ($this->wire('languages')->count()) {
+                        // check if language module is installed
+                        if ($this->wire('languages')) {
                             $lang_id = $this->wire('languages')->getLanguage()->id;
                         }
 
