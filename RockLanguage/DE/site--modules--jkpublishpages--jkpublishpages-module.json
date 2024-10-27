@@ -1,0 +1,174 @@
+{
+    "file": "site\/modules\/JkPublishPages\/JkPublishPages.module",
+    "textdomain": "site--modules--jkpublishpages--jkpublishpages-module",
+    "translations": {
+        "7abd7277f9a10193f5586acbe6eb428f": {
+            "text": "Seite in den M\u00fclleimer verschieben"
+        },
+        "95ed993384ff8861b2c4493878dc041e": {
+            "text": "Seite dauerhaft l\u00f6schen"
+        },
+        "d6dc9d4a5a6ad2541a3fd0372484f2e9": {
+            "text": "Alle markieren\/leeren"
+        },
+        "9f600621e6189e66c7b80aee8153741f": {
+            "text": "Alle 30 Sekunden"
+        },
+        "5f86190bddaffe634153c40721b41544": {
+            "text": "Jede Minute"
+        },
+        "643bd9766a482fed97aff60a7a4f1b3b": {
+            "text": "Alle %s Minuten"
+        },
+        "02fd27d2951d00b83f111f63611ea863": {
+            "text": "Jede Stunde"
+        },
+        "328310001266fb48df9ecb2de2a16b95": {
+            "text": "Alle %s Stunden"
+        },
+        "48bf14c419a1d441412510faf39c326d": {
+            "text": "Jeden Tag"
+        },
+        "2cd5f78b02d861b6e32f39e777f8e442": {
+            "text": "Alle %s Tage"
+        },
+        "64863d871b7d8ecb1eb689ceb3595cb5": {
+            "text": "Jede Woche"
+        },
+        "1438c7b7a539ccb061c084fc74933902": {
+            "text": "Alle %s Wochen"
+        },
+        "d5e0cb70b623ef0f97d6dec1cf425a06": {
+            "text": "Cron Intervall"
+        },
+        "61f5923da1288f535721d7fe521002ab": {
+            "text": "Bitte w\u00e4hlen Sie das Intervall aus, in dem eine Seite auf Ver\u00f6ffentlichungsm\u00f6glichkeiten gepr\u00fcft werden soll."
+        },
+        "ee1a44c6d1ecb6becd7014968837a6a6": {
+            "text": "Felder zu den Vorlagen hinzuf\u00fcgen"
+        },
+        "751e47c1a673fa74452a88133c913f84": {
+            "text": "Wenn eine Vorlage ausgew\u00e4hlt ist, sind die Ver\u00f6ffentlichungsfelder in dieser Vorlage vorhanden oder werden dieser Vorlage hinzugef\u00fcgt, nachdem Sie diese Seite gespeichert haben. Bei allen anderen Vorlagen sind diese Felder nicht vorhanden oder werden nach dem Speichern entfernt."
+        },
+        "c7467ebe25d55b4d1d62e6a3d1e13851": {
+            "text": "Bitte w\u00e4hlen Sie alle Vorlagen aus, denen Sie die Ver\u00f6ffentlichungsfelder hinzuf\u00fcgen m\u00f6chten, und speichern Sie anschlie\u00dfend diese Seite. Hinweis: Die Homepage-Vorlage ist ausgeschlossen und kann daher nicht ausgew\u00e4hlt werden!"
+        },
+        "4c2c658b408cbc825b8f6f01e58dbe95": {
+            "text": "Name der Elternseite neben dem Seitennamen anzeigen"
+        },
+        "94a428021c6c24149ed63d8eb95e29d5": {
+            "text": "Wenn Sie das Kontrollk\u00e4stchen aktivieren, wird der Name der Elternseite neben dem Seitennamen angezeigt, der nach Ablauf der Ver\u00f6ffentlichungszeit als neue Elternseit festgelegt wird."
+        },
+        "ef35046698ee770346416a1b0d28676a": {
+            "text": "Dies kann insbesondere dann n\u00fctzlich sein, wenn Sie eine Multi-Domain-Site betreiben, welche Seiten mit demselben Seitennamen enth\u00e4lt. Wenn Sie den Namen der Elternseite hinzuf\u00fcgen, haben Sie die M\u00f6glichkeit, Seiten mit demselben Seitennamen zu unterscheiden."
+        },
+        "a2d71c977c434a7b426a4cbf3e7b05e1": {
+            "text": "Beginn der Ver\u00f6ffentlichung"
+        },
+        "99397fcb121478a9d2dce819d0b4d34e": {
+            "text": "Ende der Ver\u00f6ffentlichung"
+        },
+        "0931aed1b5a509439888b27a717c79b1": {
+            "text": "Aktion nach Beendigung der Ver\u00f6ffentlichung"
+        },
+        "85ae32bf6d430cf5bb5bd92a88f85c28": {
+            "text": "Entscheiden Sie, was mit dieser Seite passieren soll, nachdem das Enddatum der Ver\u00f6ffentlichung erreicht wurde."
+        },
+        "70a4bc2672e2e3912e6476a2bd7ba29b": {
+            "text": "Elternseite"
+        },
+        "174825143efe547a7f036e3969faff89": {
+            "text": "W\u00e4hlen Sie die Seite aus, welche als neue Elternseite f\u00fcr diese Seite dienen soll."
+        },
+        "8fe32f00f8b4c008f955bbe290d42c29": {
+            "text": "Die Startseite kann nicht als neue Elternseite ausgew\u00e4hlt werden, daher wird sie auch nicht im Auswahlfeld angezeigt."
+        },
+        "220216efb889c070dcc6a023571fbc5b": {
+            "text": "Ver\u00f6ffentlichungsoptionen"
+        },
+        "82378f8ff7a2fd9a9604817d98d12067": {
+            "text": "Die Ver\u00f6ffentlichung der Seite aufheben"
+        },
+        "c1b22cf38570f67f406795574b11b941": {
+            "text": "Die Ver\u00f6ffentlichungseinstellungen dieser Seite erlauben es Ihnen nicht, diese Seite jetzt manuell zu ver\u00f6ffentlichen."
+        },
+        "4bb01093eb22eeddb9e05467a996f028": {
+            "text": "Andernfalls kann die Seite jetzt nicht ver\u00f6ffentlicht werden."
+        },
+        "158142b2971a3616ee5ee780c56c1f82": {
+            "text": "Der Status der Seite bleibt derzeit auf \"unver\u00f6ffentlicht\"."
+        },
+        "1a2d8139451f7bc5c959cb6d273bfb19": {
+            "text": "Um diese Seite jetzt zu ver\u00f6ffentlichen, gehen Sie zur Bearbeitungsseite, nehmen Sie dort Ihre \u00c4nderungen an den Datumsfeldern vor und ver\u00f6ffentlichen Sie die Seite danach."
+        },
+        "2db91677a442fb31aea70590681b2fb1": {
+            "text": "Die Ver\u00f6ffentlichungseinstellungen dieser Seite erlauben es Ihnen nicht, die Ver\u00f6ffentlichung dieser Seite jetzt manuell r\u00fcckg\u00e4ngig zu machen."
+        },
+        "155f5ce099ba200f6626311997c97ac8": {
+            "text": "Andernfalls kann die Ver\u00f6ffentlichung der Seite nicht sofort wieder r\u00fcckg\u00e4ngig gemacht werden."
+        },
+        "51e8dba8745d05dbb20bed17a427b95a": {
+            "text": "Der Status der Seite bleibt derzeit auf \"ver\u00f6ffentlicht\"."
+        },
+        "0607287ce25d8238d19e19d0b729dbac": {
+            "text": "Um die Ver\u00f6ffentlichung der Seite r\u00fcckg\u00e4ngig zu machen, gehen Sie zur Bearbeitungsseite, nehmen Sie Ihre \u00c4nderungen an den Datumsfeldern vor, setzen Sie das Statusfeld auf \"unver\u00f6ffentlicht\" und speichern Sie die Seite danach erneut."
+        },
+        "da907a1b8f74e6922d93b025eecfb852": {
+            "text": "Zukunft"
+        },
+        "68e2d83709f317938b51e53f7552ed04": {
+            "text": "Vergangenheit"
+        },
+        "a2e4822a98337283e39f7b60acf85ec9": {
+            "text": "leer"
+        },
+        "8f888fedf6bd5ff7c93c6d76bb8dc21c": {
+            "text": "ver\u00f6ffentlicht"
+        },
+        "3ebd43fb0ca85e5d4aae6b6f19703a39": {
+            "text": "unver\u00f6ffentlicht"
+        },
+        "5e9bebc72693b47dd08283c5ba2e1882": {
+            "text": "Um diese Seite mit Status \"%s\" jetzt speichern zu k\u00f6nnen, muss dieses Feld einen Wert in der \"%s\" beinhalten oder \"%s\" sein."
+        },
+        "41328762bf62f669a8cd0b100d88573a": {
+            "text": "Das Datum, welches Sie eingegeben haben war \"%s\" (%s)."
+        },
+        "078504a865061995fd162f12b3996a7d": {
+            "text": "Der Wert des Feldes \"Start der Ver\u00f6ffentlichung\" muss vor dem Wert des Feldes \"Ende der Ver\u00f6ffentlichung\" liegen."
+        },
+        "ad9433335aef4b80ae8a2318664468a9": {
+            "text": "Sie haben das Datum \"%s\" eingegeben, welches nach dem Enddatum \"%s\" liegt."
+        },
+        "cd3921fb3be48b650a29bc7a24a8e2ea": {
+            "text": "Bitte beachten Sie: Sie haben versucht, diese Seite mit dem Status \"%s\" zu speichern, aber gem\u00e4\u00df Ihren Ver\u00f6ffentlichungseinstellungen konnte diese Seite nur mit dem Status \"%s\" gespeichert werden"
+        },
+        "3a0c0ff456d74fd49579cdaf1c857ce9": {
+            "text": "bleibt \"%s\""
+        },
+        "8db5a18df520e1fc5559e102fd18113b": {
+            "text": "Die Seite ist gegenw\u00e4rtig %s."
+        },
+        "1fc916c8df63474c733b824f39b72055": {
+            "text": "Ver\u00f6ffentlichungsplan:"
+        },
+        "63a04db4244225442b50c8e3b5ef4e70": {
+            "text": "Der Stautus der Ver\u00f6ffentlichung bleibt in der Zukunft bestehen und wird sich nicht \u00e4ndern."
+        },
+        "66d3d080e147f29bc4401f9454ceb86b": {
+            "text": "Verschiebe die Seite als Kind zu einer anderen Seite (Seite bleibt ver\u00f6ffentlicht)"
+        },
+        "121e1d0f9e75bf8935a2238d20f2f864": {
+            "text": "in den M\u00fclleimer verschoben"
+        },
+        "da602f0b162fccbf6b150cfcfc7a7379": {
+            "text": "gel\u00f6scht"
+        },
+        "d65957ae47f0fd97653cc6caf1b96e3d": {
+            "text": "unter eine neue Elternseite verschoben"
+        },
+        "60df8181db645fc0ca6e436103b6ec10": {
+            "text": "Am %s wird diese Seite \"%s\""
+        }
+    }
+}
