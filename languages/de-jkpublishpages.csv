@@ -23,7 +23,7 @@ unpublished,unveröffentlicht,,site/modules/JkPublishPages/JkPublishPages.module
 "You have entered ""%s"", which is after the end date ""%s"".","Sie haben das Datum ""%s"" eingegeben, welches nach dem Enddatum ""%s"" liegt.",,site/modules/JkPublishPages/JkPublishPages.module,ad9433335aef4b80ae8a2318664468a9
 "Please note: You have tried to save this page with status ""%s"", but according to your publish settings, this page could only be saved with status ""%s""","Bitte beachten Sie: Sie haben versucht, diese Seite mit dem Status ""%s"" zu speichern, aber gemäß Ihren Veröffentlichungseinstellungen konnte diese Seite nur mit dem Status ""%s"" gespeichert werden",,site/modules/JkPublishPages/JkPublishPages.module,cd3921fb3be48b650a29bc7a24a8e2ea
 "remains ""%s""","bleibt ""%s""",,site/modules/JkPublishPages/JkPublishPages.module,3a0c0ff456d74fd49579cdaf1c857ce9
-"will be ""%s"" on %s","wird % am %s",,site/modules/JkPublishPages/JkPublishPages.module,e2f895d855210165fda66b1017d382e5
+"will be ""%s"" on %s","wird %s am %s",,site/modules/JkPublishPages/JkPublishPages.module,e2f895d855210165fda66b1017d382e5
 "Page is currently %s.","Die Seite ist gegenwärtig %s.",,site/modules/JkPublishPages/JkPublishPages.module,8db5a18df520e1fc5559e102fd18113b
 "Schedule plan:",Veröffentlichungsplan:,,site/modules/JkPublishPages/JkPublishPages.module,1fc916c8df63474c733b824f39b72055
 "The status of the publication will remain unchanged in the future.","Der Stautus der Veröffentlichung bleibt in der Zukunft bestehen und wird sich nicht ändern.",,site/modules/JkPublishPages/JkPublishPages.module,63a04db4244225442b50c8e3b5ef4e70
