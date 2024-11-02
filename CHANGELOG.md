@@ -149,7 +149,7 @@ There was a bug when searching pages for a specific status on multilingual websi
 
 Writing mistake in date format of inputfield "jk_publish_until" fixed (d-m-Y instead of d-M-Y).
 
-## 2024-09-27
+## [1.3.14] 2024-11-02
 
 - **Support for RockLanguage added**
 
@@ -157,4 +157,4 @@ If you have installed the [RockLanguage](https://processwire.com/modules/rock-la
 
 Please note: The sync will only take place if you are logged in as Superuser and $config->debug is set to true (take a look at the [docs](https://www.baumrock.com/en/processwire/modules/rocklanguage/docs/)).
 
-The (old) CSV files usage is still supported.
+BTW, the (old) CSV files usage is still supported.
