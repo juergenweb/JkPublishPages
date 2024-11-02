@@ -600,17 +600,15 @@
         {
 
             $page = $event->arguments(0);
+            if ($this->wire('input')->post['changestatus']) {
 
-            if ($this->wire('session')->get('changestatus')) {
-
-                $status = $this->wire('session')->get('changestatus');
+                $status = $this->wire('input')->post['changestatus'];
 
                 if ($status === 'unpub') {
                     $page->setStatus('unpublished');
                 } else {
                     $page->removeStatus('unpublished');
                 }
-                $this->wire('session')->remove('changestatus');
                 $event->arguments(0, $page);
             }
 
@@ -801,7 +799,7 @@
                     $status = ($wanted_action == 1) ? 'pub' : 'unpub';
                 }
 
-                $this->wire('session')->set('changestatus', $status);
+                $this->wire('input')->post['changestatus'] = $status;
 
                 // output error message if present
                 if ($msg) {
