@@ -224,7 +224,7 @@
             if ($this->page->id > 0) {
 
                 // check if the template of the given page has a publishing field inside, otherwise return a empty PageArray
-                if(!in_array($this->page->template->id, array_keys($this->input_templates))) {
+                if(!in_array($this->page->template->id, array_keys($this->input_templates)) || !$this->page->hasField('jk_move_child')) {
                     return new PageArray();
                 }
 
