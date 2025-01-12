@@ -158,3 +158,13 @@ If you have installed the [RockLanguage](https://processwire.com/modules/rock-la
 Please note: The sync will only take place if you are logged in as Superuser and $config->debug is set to true (take a look at the [docs](https://www.baumrock.com/en/processwire/modules/rocklanguage/docs/)).
 
 BTW, the (old) CSV files usage is still supported.
+
+## [1.3.15] 2025-01-12
+
+- **Performance check added**
+
+Many thanks to MarkE from the support forum, who discovered a performance problem with websites with many pages.
+
+The problem was that the getParentPages() function ran on all pages, not just on pages that had a publish field within the template. This resulted in load times of up to 20 seconds if a website has a lot of pages.
+
+A new check within the getParentPages() method, which also comes as a suggestion from MarkE, should solve this problem now.
