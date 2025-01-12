@@ -223,6 +223,11 @@
             // run only if the current page object has no id = 0
             if ($this->page->id > 0) {
 
+                // check if the template of the given page has a publishing field inside, otherwise return a empty PageArray
+                if(!in_array($this->page->template->id, array_keys($this->input_templates))) {
+                    return new PageArray();
+                }
+
                 // create the selector to find allowed templates for parent pages
                 $selectors = 'flags!="8",'; // exclude all system templates
                 $selectors .= 'noChildren!=1,'; // exclude all templates, which are not allowed to have children
@@ -352,7 +357,6 @@
 
         /**
          * Method to check if a button inside the page tree has been clicked
-         * Stores the name of the action (fe "pub" for published) inside the session as the value
          * @param \ProcessWire\HookEvent $event
          * @return void
          * @throws \ProcessWire\WireException
