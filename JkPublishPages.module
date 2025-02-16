@@ -224,7 +224,7 @@
             if ($this->page->id > 0) {
 
                 // check if the template of the given page has a publishing field inside, otherwise return a empty PageArray
-                if(!in_array($this->page->template->id, array_keys($this->input_templates)) || !$this->page->hasField('jk_move_child')) {
+                if (!in_array($this->page->template->id, array_keys($this->input_templates)) || !$this->page->hasField('jk_move_child')) {
                     return new PageArray();
                 }
 
@@ -304,7 +304,8 @@
 
         /**
          * Add the label in the current language if the site is multilanguage and
-         * add the parent page name next to the page name of the specified new parent page if it is set in the configuration
+         * add the parent page name next to the page name of the specified new parent page if it is set in the
+         * configuration
          * @param \ProcessWire\HookEvent $event
          * @return void
          * @throws \ProcessWire\WireException
@@ -1114,21 +1115,22 @@
 
         /**
          * Remove module fields from each template inside the templates' array
-         * @param array $templates
+         * @param array|null $templates
          * @return void
-         * @throws WireException
-         * @throws WirePermissionException
+         * @throws \ProcessWire\WireException
+         * @throws \ProcessWire\WirePermissionException
          */
-        protected function removeFields(array $templates): void
+        protected function removeFields(array|null $templates): void
         {
-            foreach ($templates as $template) {
-                $currentTempl = wire('templates')->get($template);
-                foreach ($this->moduleFields as $fieldName) {
-                    $currentTempl->fieldgroup->remove($fieldName);
+            if (!is_null($templates)) {
+                foreach ($templates as $template) {
+                    $currentTempl = wire('templates')->get($template);
+                    foreach ($this->moduleFields as $fieldName) {
+                        $currentTempl->fieldgroup->remove($fieldName);
+                    }
+                    $currentTempl->fieldgroup->save();
                 }
-                $currentTempl->fieldgroup->save();
             }
-
         }
 
         /**
