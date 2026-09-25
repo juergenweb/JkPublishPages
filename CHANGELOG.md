@@ -218,3 +218,9 @@ Users without the required permissions could use the publishing fields to publis
 The status determined by the date validation was passed via the POST parameter "changestatus", which could be manipulated by the user. It is now stored internally. The status change also no longer overwrites all other status flags of a page (addStatus instead of setStatus).
 
 In addition, the new parent page (also in the cron job) must not be part of the admin tree or use a system template, and the family settings of both templates must allow this parent/child combination.
+
+- **Unit tests**
+
+The decision logic of the cron job (publish, unpublish, trash, move, delete) has been moved to the new class JkPublishPagesRules, which has no dependency on ProcessWire. The cron job now decides for every page via this class, so the tested logic is exactly the logic that runs. The boundaries are consistent now: a page is inside the publication period if start <= now <= end, the publication has ended if end < now (before, a page with a start date exactly at the current time could be published and unpublished by the same cron run).
+
+PHPUnit tests can be run with "composer install" and "composer test" (requires PHP 8.1+ for PHPUnit 10/11).

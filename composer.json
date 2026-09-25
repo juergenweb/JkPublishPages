@@ -1,0 +1,23 @@
+{
+    "name": "juergenweb/jkpublishpages",
+    "description": "Publish/unpublish pages depending on dates and times (ProcessWire module)",
+    "type": "pw-module",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5 || ^11.0"
+    },
+    "autoload-dev": {
+        "classmap": [
+            "JkPublishPagesRules.php"
+        ],
+        "psr-4": {
+            "JkPublishPages\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

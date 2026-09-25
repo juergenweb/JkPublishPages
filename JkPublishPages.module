@@ -5,6 +5,8 @@
 
     use Exception;
 
+    require_once __DIR__ . '/JkPublishPagesRules.php';
+
 
     /**
      *
@@ -560,44 +562,11 @@
                 $end_ts = $this->wire('datetime')->stringToTimestamp($enddate, $untildate_format);
             }
 
-            // no entries → page can be published or unpublished
-            if (empty($start_ts) && empty($end_ts)) {
-                return 0;
-            }
+            // stringToTimestamp() may return '' or false for empty/invalid values
+            $start_ts = is_numeric($start_ts) ? (int)$start_ts : null;
+            $end_ts = is_numeric($end_ts) ? (int)$end_ts : null;
 
-            // no start, but end date
-            if (empty($start_ts)) {
-                if ($end_ts >= $check_ts) {
-                    // end date is in the future → can be published or unpublished
-                    return 0;
-                } else {
-                    // end date is in the past → only unpublished
-                    return -1;
-                }
-            } else {
-
-                if (empty($end_ts)) {
-
-                    if ($start_ts > $check_ts) {
-                        // start date is in the future → page must be unpublished
-                        return -1;
-                    } else {
-                        // start date is in the past or in the present → page must be published
-                        return 1;
-                    }
-                } else {
-
-                    // check if the date is between start and end
-                    if (($check_ts >= $start_ts) && ($check_ts <= $end_ts)) {
-                        // date is in time range → must be published
-                        return 1;
-                    } else {
-                        // date is not in time range → must be unpublished
-                        return -1;
-                    }
-                }
-
-            }
+            return JkPublishPagesRules::getPublishingCode($start_ts, $end_ts, $check_ts);
         }
 
         /**
@@ -1187,84 +1156,56 @@
             // without include=all ProcessWire adds "status<1024" automatically, so unpublished pages would never be found
             $selectors .= 'include=all,';
 
-            /* Publish conditions */
-            // 1) jk_publish_from<=now, jk_publish_until=>now
-            // 2) jk_publish_from<=now, jk_publish_until=
+            // The selectors only pre-filter the candidates in the database (they may return a few pages too many at
+            // the boundaries). The final decision for every page is made by JkPublishPagesRules::decide(), which is
+            // covered by unit tests.
 
-            /* Unpublish conditions */
-            // 1) jk_publish_from>=now, jk_publish_until>=now
-            // 3) jk_publish_from>=now, jk_publish_until=
-            // 2) jk_publish_from<=now, jk_publish_until<=now
-            // 4) jk_publish_from=, jk_publish_until<=now
+            // published pages outside the publication period: start date in the future or end date in the past
+            $candidates = $this->wire('pages')->find($selectors . 'status!=unpublished,(jk_publish_from>now),(jk_publish_until<now)');
 
-            // only pages which are published at the moment
-            $pagesToUnpublish = $this->wire('pages')->find($selectors . 'status!=unpublished,(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)');
-
-            // only pages which are unpublished at the moment
-            $pagesToPublish = $this->wire('pages')->find($selectors . 'status=unpublished,(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)');
+            // unpublished pages inside the publication period (a start date is required for automatic publishing)
+            $candidates->import($this->wire('pages')->find($selectors . 'status=unpublished,jk_publish_from<=now,(jk_publish_until>=now),(jk_publish_until=)'));
 
             // unpublished pages whose publication has ended and which have an action other than "unpublish"
             // (e.g. pages that have been unpublished manually before the end date) → trash, move or delete them too
-            $pagesExpired = $this->wire('pages')->find($selectors . 'status=unpublished,jk_publish_until<=now,jk_action_after=2|3|4,(jk_publish_from=),(jk_publish_from<=now)');
+            $candidates->import($this->wire('pages')->find($selectors . 'status=unpublished,jk_publish_until<now,jk_action_after=2|3|4'));
 
-            // publish pages
-            foreach ($pagesToPublish as $p) {
-                try {
-                    $p->of(false);
-                    $p->removeStatus(Page::statusUnpublished);
-                    $p->save();
-                    $this->logCron($p, 'published');
-                } catch (\Throwable $e) {
-                    // an error on one page must not stop the processing of all other pages
-                    $this->logCron($p, 'ERROR on publishing: ' . $e->getMessage());
-                }
-            }
-
-            // unpublish published pages - the action after publication (trash, move, delete) will only be executed
-            // if the end date has been reached, not if the start date is in the future
-            foreach ($pagesToUnpublish as $p) {
-                $this->endPublication($p, $this->publicationHasEnded($p));
-            }
-
-            // trash, move or delete unpublished pages whose publication has ended
-            foreach ($pagesExpired as $p) {
-                $this->endPublication($p, true);
+            $now = time();
+            foreach ($candidates as $p) {
+                $this->processPage($p, $now);
             }
 
         }
 
         /**
-         * Check if the end date of the publication of a page has been reached
+         * Decide what to do with a page (via JkPublishPagesRules) and execute it
          * @param \ProcessWire\Page $p
-         * @return bool
-         */
-        protected function publicationHasEnded(Page $p): bool
-        {
-            if (!$p->hasField('jk_publish_until')) return false;
-            $until = (int)$p->getUnformatted('jk_publish_until');
-            return $until > 0 && $until <= time();
-        }
-
-        /**
-         * Unpublish a page or execute the action after the publication has ended (trash, move, delete)
-         * @param \ProcessWire\Page $p
-         * @param bool $ended true if the end date has been reached → execute the selected action, otherwise only unpublish
+         * @param int $now
          * @return void
          */
-        protected function endPublication(Page $p, bool $ended): void
+        protected function processPage(Page $p, int $now): void
         {
             try {
                 $p->of(false);
 
-                $action = $ended ? $this->getActionAfter($p) : 1;
+                $start = $p->hasField('jk_publish_from') ? (int)$p->getUnformatted('jk_publish_from') : null;
+                $end = $p->hasField('jk_publish_until') ? (int)$p->getUnformatted('jk_publish_until') : null;
 
-                switch ($action) {
-                    case 2: // move to trash (Pages::trash() saves the page itself)
+                $result = JkPublishPagesRules::decide($p->isUnpublished(), $start, $end, $this->getActionAfter($p), $now);
+
+                switch ($result) {
+                    case JkPublishPagesRules::RESULT_PUBLISH:
+                        $p->removeStatus(Page::statusUnpublished);
+                        $p->save();
+                        $this->logCron($p, 'published');
+                        break;
+
+                    case JkPublishPagesRules::RESULT_TRASH: // Pages::trash() saves the page itself
                         $this->wire('pages')->trash($p);
                         $this->logCron($p, 'moved to trash');
                         break;
 
-                    case 3: // move page under a new parent (the status of the page will not be changed)
+                    case JkPublishPagesRules::RESULT_MOVE: // the status of the page will not be changed
                         $new_parent = $this->getNewParent($p);
                         if (!$new_parent) {
                             // no valid parent page selected → unpublish the page instead
@@ -1272,13 +1213,13 @@
                             break;
                         }
                         $p->jk_publish_until = '';
-                        $p->jk_action_after = 1;
+                        $p->jk_action_after = JkPublishPagesRules::ACTION_UNPUBLISH;
                         $p->parent = $new_parent;
                         $p->save();
                         $this->logCron($p, 'moved to new parent ' . $new_parent->path);
                         break;
 
-                    case 4: // delete permanently (no save afterwards - the page does not exist anymore)
+                    case JkPublishPagesRules::RESULT_DELETE: // no save afterwards - the page does not exist anymore
                         if ($p->numChildren) {
                             // do not delete child pages silently → unpublish the page instead
                             $this->unpublishPage($p, 'unpublished instead of deleted, because the page has children');
@@ -1290,12 +1231,15 @@
                         $this->wire('log')->save('jkpublishpages', "Page $id ($path) deleted permanently");
                         break;
 
-                    default: // set page status to unpublished
+                    case JkPublishPagesRules::RESULT_UNPUBLISH:
                         $this->unpublishPage($p, 'unpublished');
+                        break;
+
+                    default: // RESULT_NONE → nothing to do
                 }
             } catch (\Throwable $e) {
                 // an error on one page must not stop the processing of all other pages
-                $this->logCron($p, 'ERROR after end of publication: ' . $e->getMessage());
+                $this->logCron($p, 'ERROR: ' . $e->getMessage());
             }
         }
 
@@ -1331,8 +1275,7 @@
             if ($value instanceof SelectableOption) {
                 $value = $value->id;
             }
-            $action = (int)(is_scalar($value) ? $value : 0);
-            return in_array($action, [1, 2, 3, 4], true) ? $action : 1;
+            return JkPublishPagesRules::normalizeAction(is_scalar($value) ? $value : null);
         }
 
         /**
