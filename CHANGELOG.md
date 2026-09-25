@@ -169,90 +169,60 @@ The problem was that the getParentPages() function ran on all pages, not just on
 
 A new check within the getParentPages() method, which also comes as a suggestion from MarkE, should solve this problem now.
 
-## [1.3.16] 2026-09-25
+## [1.3.17] 2026-09-25
 
-- **Automatic publishing fixed**
+This version contains a large number of bug fixes, security fixes and improvements. It is recommended for all users.
 
-The cron job did not find unpublished and hidden pages, because the page selectors did not contain "include=all" (ProcessWire adds "status<1024" automatically in this case). As a result, pages were never published automatically and hidden pages were never unpublished, trashed, moved or deleted. Access checks are disabled now too, so pages that are not viewable by guests are also processed (LazyCron runs mostly as guest).
+### Bug fixes
 
-- **Cron job made more robust**
+- **Automatic publishing did not work:** The cron job did not find unpublished and hidden pages, because the page selectors did not contain "include=all". As a result, pages were never published automatically, and hidden pages were never unpublished, trashed, moved or deleted. Access checks are disabled for the cron job too, so pages that are not viewable by guests are also processed (LazyCron runs mostly as guest).
+- **Actions after the end of publication were executed too early:** The action after the end of publication (trash, move, delete) was also executed on manually published pages whose start date was still in the future. Now the action is only executed if the end date has been reached - otherwise the page is only unpublished.
+- **Manually unpublished pages were never trashed, moved or deleted:** The action after the end of publication is now also executed on pages that have been unpublished manually before the end date.
+- **Deleted pages were saved again:** Pages are no longer saved after they have been deleted permanently or moved to the trash.
+- **Pages with children were deleted silently or stopped the cron job:** A page with child pages is no longer deleted - it is unpublished instead. An error on one page no longer stops the processing of all other pages.
+- **Moving without a valid new parent:** If no valid new parent page is selected, the page is unpublished instead of being moved. The new parent must not be the page itself, one of its children, a page in the trash or in the admin tree, and the family settings of both templates must allow the parent/child combination.
+- **Status change applied to other pages:** The status change after the date validation was applied to every page saved during the same request (e.g. repeater items or pages saved by the cron job). Now it is only applied to the page that is edited.
+- **Other status flags were removed:** Unpublishing a page no longer removes other status flags like "hidden" or "locked" (addStatus instead of setStatus).
+- **Page tree publish/unpublish check:** The check used the page from the URL and a session value, which was only removed if the action was denied. A leftover session value could block later publishing actions. Now the action is only stored for the current request, and the dates of the page that is actually published or unpublished are checked.
+- **Installation failed after an incomplete uninstallation:** If a field (e.g. the fieldset closer "jk_publish_open_END") was left over, the installation failed with "Field may not be named ... because it is already used by another field". Every field is now checked separately and existing fields are reused. The check for the field "jk_move_child" used a wrong field name. The uninstallation now removes the fields from all templates, skips missing fields and does not stop if one field cannot be deleted.
+- **Fields were added/removed when saving the configuration of ANY module:** The fields are now only added to or removed from templates when the configuration of this module is saved, only on the templates offered in the module configuration (no system templates, no homepage template), and only changed templates are saved. The checkboxes show the templates that actually contain the publishing fields.
+- **Schedule plan did not match the cron job:** The schedule plan in the page editor, the icon in the page tree and the sub-headline are now calculated with the same rules the cron job uses. They now also show the action after the end of publication and changes that happen on the next run of the cron job. Every date is formatted with the output format of its own field, and the plan is no longer split by commas.
+- **Date fields with the input type "select"** are now evaluated correctly (year, month and day are sent as separate values).
+- **Inconsistent boundaries:** A page is inside the publication period if start <= now <= end, the publication has ended if end < now. Before, a page with a start date exactly at the current time could be published and unpublished by the same cron run.
+- **The select field "jk_action_after"** is now created with the correct setting "inputfieldClass".
+- **JavaScript:** The script no longer overwrites window.onload (which disabled other scripts or was disabled by them). The toggle link now checks all checkboxes if at least one is unchecked, otherwise it unchecks all (before, the first click always checked all), it only changes the checkboxes of its own field and fires change events, so ProcessWire notices the changes.
 
-Pages are no longer saved again after they have been deleted permanently or moved to the trash. A page with child pages will not be deleted silently anymore - it will be unpublished instead. If no valid new parent page is selected, the page will be unpublished instead of being moved. An error on one page no longer stops the processing of all other pages. All actions and errors are written to the log file "jkpublishpages" (Setup > Logs).
+### Security
 
-- **Status change only applies to the edited page**
+- **Permission checks for the publishing settings:** Users without the required permissions could use the publishing fields to publish, trash, delete or move a page (immediately or via the cron job). Changing the start or end date now requires the permission page-publish, the action "move to trash" page-trash, "delete permanently" page-delete and "move page" the permission to move the page to the selected parent. Not allowed changes are reverted and an error message is displayed. Superusers are not affected.
+- **Manipulated POST parameter:** The status determined by the date validation was passed via the POST parameter "changestatus", which could be manipulated by the user. It is now stored internally.
+- **Selector injection:** The URL parameter "id" was passed unsanitized as a selector to $pages->get() on every request (also on the frontend). It is now sanitized as an integer.
+- **SQL injection:** The translated titles of the options of "jk_action_after" were inserted directly into the SQL string. Now a prepared statement is used, and the options are identified by their option id instead of their title.
+- **Input only from POST:** The date validation reads the values explicitly from POST and only accepts scalar values (before, GET parameters and cookies were also considered, depending on $config->wireInputOrder).
+- **Escaped output:** The texts in the page tree, the headline and the schedule plan are entity-encoded.
+- **Log:** The log entries of the cron job (Setup > Logs > jkpublishpages) contain the user who changed the page last, because the cron job itself runs mostly as guest.
 
-The status change after validating the date fields was applied to every page saved during the same request (e.g. repeater items or pages saved by the cron job). Now it will only be applied to the page that is currently edited.
+### Performance
 
-- **Installation after incomplete uninstallation fixed**
+- The module configuration is no longer saved to the database on every request (also on the frontend).
+- The possible new parent pages are only loaded on the page edit screen when they are needed (before: on every request with an "id" URL parameter).
+- The JS and CSS files are only added in the admin. The file modification time is used for cache busting instead of the current time (which prevented browser caching).
 
-If one of the fields (e.g. the fieldset closer "jk_publish_open_END") was left over from a previous uninstallation, the installation failed with "Field may not be named ... because it is already used by another field". The installation now checks every field separately and reuses existing fields. The check for the field "jk_move_child" used a wrong field name ("jk_show_parent") and has been corrected. The uninstallation now removes the fields from all templates (not only from the templates stored in the module config), skips missing fields and does not stop if one field cannot be deleted.
+### Improvements
 
-- **Page tree publish/unpublish check fixed**
+- **Namespaces:** The JavaScript file uses a single global namespace object "JkPublishPages". All CSS classes and IDs are prefixed with "jkpp-" to avoid conflicts with other modules, because the CSS file is loaded on every admin page. The toggle link is only added to the template selection of this module (before, it was added to every checkbox field named "input_templates") and is a keyboard accessible button.
+- **German translations** for all new texts (RockLanguage file and CSV language file).
+- **.gitattributes:** Tests, images and the vendor folder are no longer included in release archives.
 
-The check whether a page may be published or unpublished via the buttons in the page tree used the page from the URL parameter "id" and a session value, which was only removed if the action was denied. A leftover session value could block later publishing actions (e.g. in the page editor or by the cron job). Now the action is only stored for the current request and the check uses the dates of the page that is actually published or unpublished.
+### Code quality
 
-- **URL parameter "id" sanitized**
+- **PSR-12:** JkPublishPages.module is formatted according to PSR-12 (checked with PHP_CodeSniffer). Only a few translatable texts are longer than 120 characters, because they must not be split (the ProcessWire language parser only recognizes complete strings).
+- **Documentation:** Every method and property has an English docblock.
+- **Rules class:** The decision logic of the cron job has been moved to the new class JkPublishPagesRules, which has no dependency on ProcessWire. The cron job has been split into findCandidates() and processPage().
+- **Clean-up:** Unused methods and properties have been removed, a date validation branch that could never be reached has been simplified, and missing fields no longer cause warnings.
 
-The URL parameter "id" was passed unsanitized as a selector to $pages->get() on every request (also on the frontend). It is now sanitized as an integer.
+### Tests
 
-- **Performance: no more database writes and page queries on every request**
-
-The module config was saved to the database on every request (also on the frontend) and all possible new parent pages were loaded on every request with an "id" URL parameter. Now the template selection is only processed when the module config is saved, and the parent pages are only loaded on the page edit screen when they are needed. The JS and CSS files are only added in the admin, and the file modification time is used for cache busting instead of the current time (which prevented browser caching).
-
-- **Fields were added/removed when saving the config of ANY module**
-
-The hook for adding and removing the publishing fields ran on the config screen of every module. Now it only runs when the config of this module is saved, only templates offered in the module config are changed (no system templates, no homepage template), and only changed templates are saved. The checkboxes now show the templates that actually contain the publishing fields.
-
-- **Translation of the select options: prepared statement**
-
-The translated titles of the options of "jk_action_after" were inserted directly into the SQL string, so a translation containing quotes broke the query. Now a prepared statement is used and the options are identified by their option id instead of their title.
-
-- **Actions after the end of publication**
-
-The action after the end of publication (trash, move, delete) was also executed on published pages whose start date was still in the future. Now it will only be executed if the end date has been reached - otherwise the page will only be unpublished. In addition, the action is now also executed on pages that have been unpublished manually before the end date.
-
-- **Security: permission checks for the publishing settings**
-
-Users without the required permissions could use the publishing fields to publish, trash, delete or move a page (immediately or via the cron job). Now the permissions of the current user are checked when saving a page: changing the start or end date requires the page-publish permission, the action "move to trash" requires page-trash, "delete permanently" requires page-delete and "move page" requires the permission to move the page to the selected parent. Not allowed changes are reverted to the stored values and an error message is displayed. Superusers are not affected.
-
-The status determined by the date validation was passed via the POST parameter "changestatus", which could be manipulated by the user. It is now stored internally. The status change also no longer overwrites all other status flags of a page (addStatus instead of setStatus).
-
-In addition, the new parent page (also in the cron job) must not be part of the admin tree or use a system template, and the family settings of both templates must allow this parent/child combination.
-
-- **Unit tests**
-
-The decision logic of the cron job (publish, unpublish, trash, move, delete) has been moved to the new class JkPublishPagesRules, which has no dependency on ProcessWire. The cron job now decides for every page via this class, so the tested logic is exactly the logic that runs. The boundaries are consistent now: a page is inside the publication period if start <= now <= end, the publication has ended if end < now (before, a page with a start date exactly at the current time could be published and unpublished by the same cron run).
-
-PHPUnit tests can be run with "composer install" and "composer test" (requires PHP 8.1+ for PHPUnit 10/11).
-
-- **Integration tests**
-
-New integration tests run against the ProcessWire installation the module is installed in ("composer test:integration"). They create their own test template, test pages, a test role and a test user and remove everything afterwards. The cron job itself is never executed (it would process all pages of the site): the tests only use findCandidates() (read only) and processPage() on their own test pages. The tests cover publishing, unpublishing, trash, move and delete, hidden pages, the cron job running as guest, and the permission checks when saving a page. Another installation can be used via the environment variable JKPP_PW_INDEX.
-
-The cron job has been split into findCandidates() and processPage() for this purpose.
-
-- **Security hardening**
-
-The date validation now reads the values explicitly from POST and only accepts scalar values (before, $input->name was used, which also considers GET parameters and cookies depending on $config->wireInputOrder). Date fields with the input type "select" are now evaluated correctly (year, month and day are sent as separate values). The texts in the page tree, the headline and the schedule plan are now entity-encoded. The log entries of the cron job now contain the user who changed the page last, because the cron job itself runs mostly as guest. Unused methods have been removed.
-
-- **Schedule plan matches the cron job**
-
-The schedule plan in the page editor, the icon in the page tree and the sub-headline are now calculated with the same rules the cron job uses (JkPublishPagesRules::schedule()). Before, the plan could differ from what the cron job really did (e.g. a manually published page with a start date in the future was unpublished by the cron job, but the plan said nothing). The plan now also shows the action after the end of the publication (trash, move, delete) and changes that happen on the next run of the cron job. Every date is formatted with the output format of its own field, and the plan is no longer split by commas (translations may contain commas).
-
-- **Clean-up**
-
-Unused methods and properties have been removed, a date validation branch that could never be reached has been simplified, missing fields no longer cause warnings, and fields are only saved to templates if they have been changed. The select field "jk_action_after" is now created with the correct setting "inputfieldClass".
-
-- **German translations**
-
-German translations for all new texts (permission checks, schedule plan) added to the RockLanguage file and the CSV language file.
-
-- **More tests**
-
-Unit tests for the boundary cases (start or end date exactly at the current time) and integration tests for the date validation in the page editor (error messages, the status the page will be saved with and the warning about a status change) for all combinations of the two date fields.
-
-- **JavaScript: namespace and bug fixes**
-
-The JavaScript file now uses a single global namespace object "JkPublishPages" and no longer overwrites window.onload (which disabled other scripts or was disabled by them). The toggle link now checks all checkboxes if at least one is unchecked, otherwise it unchecks all (before, the first click always checked all). It only changes the checkboxes of its own field, fires change events (so ProcessWire notices the changes) and is a keyboard accessible button. The toggle link is now added only to the template selection of this module (before, it was added to every checkbox field named "input_templates"). All CSS classes and IDs are prefixed with "jkpp-" to avoid conflicts with other modules, because the CSS file is loaded on every admin page. Unused CSS has been removed.
-
-JavaScript tests (Node test runner + jsdom) can be run with "npm install" and "npm test".
+- **Unit tests** for the decision logic and the schedule plan: "composer install" and "composer test" (PHP 8.1+ for PHPUnit 10/11).
+- **Integration tests** against the ProcessWire installation the module is installed in: "composer test:integration". They create their own test template, test pages, a test role and a test user and remove everything afterwards. The cron job itself is never executed (it would process all pages of the site). The tests cover publishing, unpublishing, trash, move and delete, hidden pages, the cron job running as guest, the permission checks, the date validation in the page editor, the schedule plan and the log. Another installation can be used via the environment variable JKPP_PW_INDEX.
+- **JavaScript tests** (Node test runner and jsdom): "npm install" and "npm test".

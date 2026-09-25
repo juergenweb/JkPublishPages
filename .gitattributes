@@ -14,3 +14,7 @@
 
 # Composer dependencies
 /vendor export-ignore
+
+# PSR-12: PHP files must use LF line endings (also on Windows)
+*.php text eol=lf
+*.module text eol=lf
