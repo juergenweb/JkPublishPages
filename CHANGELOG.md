@@ -212,11 +212,12 @@ This version contains a large number of bug fixes, security fixes and improvemen
 
 - **Namespaces:** The JavaScript file uses a single global namespace object "JkPublishPages". All CSS classes and IDs are prefixed with "jkpp-" to avoid conflicts with other modules, because the CSS file is loaded on every admin page. The toggle link is only added to the template selection of this module (before, it was added to every checkbox field named "input_templates") and is a keyboard accessible button.
 - **German translations** for all new texts (RockLanguage file and CSV language file).
-- **.gitattributes:** Tests, images and the vendor folder are no longer included in release archives.
+- **.gitattributes:** Tests, images and the vendor folder are no longer included in release archives. PHP files always use LF line endings (PSR-12).
+- **.gitignore:** Dependencies (vendor, node_modules), caches, Git bundles, IDE and operating system files are not committed.
 
 ### Code quality
 
-- **PSR-12:** JkPublishPages.module is formatted according to PSR-12 (checked with PHP_CodeSniffer). Only a few translatable texts are longer than 120 characters, because they must not be split (the ProcessWire language parser only recognizes complete strings).
+- **PSR-12:** All PHP files (JkPublishPages.module, JkPublishPagesRules.php and all tests) are formatted according to PSR-12 and checked with PHP_CodeSniffer. Only a few translatable texts in JkPublishPages.module are longer than 120 characters, because they must not be split (the ProcessWire language parser only recognizes complete strings).
 - **Documentation:** Every method and property has an English docblock.
 - **Rules class:** The decision logic of the cron job has been moved to the new class JkPublishPagesRules, which has no dependency on ProcessWire. The cron job has been split into findCandidates() and processPage().
 - **Clean-up:** Unused methods and properties have been removed, a date validation branch that could never be reached has been simplified, and missing fields no longer cause warnings.

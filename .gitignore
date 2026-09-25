@@ -1,6 +1,27 @@
+# Files and folders that are not committed to the repository
+
+# Composer dependencies (install with "composer install")
 /vendor
+composer.lock
+
+# PHPUnit cache
 /.phpunit.cache/
 .phpunit.result.cache
-composer.lock
+
+# Node.js dependencies for the JavaScript tests (install with "npm install")
 /node_modules
 /package-lock.json
+
+# Git bundles (used to transfer commits)
+*.bundle
+
+# IDE and editor files
+/.idea/
+/.vscode/
+*.swp
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
