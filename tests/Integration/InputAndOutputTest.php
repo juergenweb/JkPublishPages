@@ -60,6 +60,24 @@
             $this->assertMatchesRegularExpression('/title="[^"<>]*"/', $event->return, 'the title attribute must not contain unencoded markup');
         }
 
+        /* toggle link in the module configuration -------------------------------------------------------------- */
+
+        public function testToggleLinkIsOnlyAddedToTheTemplateSelection(): void
+        {
+            $inputfields = self::$wire->modules->get('InputfieldWrapper');
+            self::module()->getModuleConfigInputfields($inputfields);
+            $templates = $inputfields->getChildByName('input_templates');
+
+            $this->assertStringContainsString('data-jkpp-toggle', (string)$templates->prependMarkup);
+            $this->assertStringContainsString('type="button"', (string)$templates->prependMarkup);
+
+            // a checkbox field with the same name in another module must not get the toggle link
+            $other = self::$wire->modules->get('InputfieldCheckboxes');
+            $other->attr('name', 'input_templates');
+            $other->addOption('a', 'A');
+            $this->assertStringNotContainsString('data-jkpp-toggle', $other->render());
+        }
+
         /* schedule plan ---------------------------------------------------------------------------------------- */
 
         public function testScheduleShowsUnpublishingOfManuallyPublishedPageWithStartInFuture(): void

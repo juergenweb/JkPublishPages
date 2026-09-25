@@ -250,3 +250,9 @@ German translations for all new texts (permission checks, schedule plan) added t
 - **More tests**
 
 Unit tests for the boundary cases (start or end date exactly at the current time) and integration tests for the date validation in the page editor (error messages, the status the page will be saved with and the warning about a status change) for all combinations of the two date fields.
+
+- **JavaScript: namespace and bug fixes**
+
+The JavaScript file now uses a single global namespace object "JkPublishPages" and no longer overwrites window.onload (which disabled other scripts or was disabled by them). The toggle link now checks all checkboxes if at least one is unchecked, otherwise it unchecks all (before, the first click always checked all). It only changes the checkboxes of its own field, fires change events (so ProcessWire notices the changes) and is a keyboard accessible button. The toggle link is now added only to the template selection of this module (before, it was added to every checkbox field named "input_templates"). All CSS classes and IDs are prefixed with "jkpp-" to avoid conflicts with other modules, because the CSS file is loaded on every admin page. Unused CSS has been removed.
+
+JavaScript tests (Node test runner + jsdom) can be run with "npm install" and "npm test".

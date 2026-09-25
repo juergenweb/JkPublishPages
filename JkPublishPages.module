@@ -150,7 +150,6 @@
             $this->addHookAfter('Modules::saveConfig', $this, 'addRemovePublishingFields');
             $this->addHookAfter('ProcessLanguage::processCSV', $this, 'addTranslationsToFields');
             $this->addHookAfter('InputfieldPage::getSelectablePages', $this, 'setPageArrayNew');
-            $this->addHookAfter('InputfieldCheckboxes::render', $this, 'addToggle');
             $this->addHookAfter('ProcessPageEdit::buildForm', $this, 'hideInputfield');
             $this->addHookBefore('Inputfield::render', $this, 'manipulateLabel');
 
@@ -202,19 +201,14 @@
         }
 
         /**
-         * Add the toggle link for the checkboxes to check/uncheck all checkboxes at once before the inputfield
-         * The link will be displayed above the input field
-         * @param HookEvent $event
-         * @return void
+         * Get the markup of the toggle link to check/uncheck all checkboxes at once
+         * The link will be displayed above the checkboxes of the template selection in the module configuration.
+         * Namespaced class and data attribute (jkpp-), so there are no conflicts with other modules.
+         * @return string
          */
-        protected function addToggle(HookEvent $event): void
+        protected function getToggleMarkup(): string
         {
-            $field = $event->object;
-            if ($field->name == 'input_templates') {
-                $return = $event->return;
-                $toggle = '<div id="toggle-link" class="description">' . $this->_('Un/check all') . '</div>';
-                $event->return = $toggle . $return;
-            }
+            return '<button type="button" class="jkpp-toggle-link description" data-jkpp-toggle>' . $this->esc($this->_('Un/check all')) . '</button>';
         }
 
         /**
@@ -1007,7 +1001,7 @@
                     $text .= '<ul><li>' . $this->esc($this->_('The status of the publication will remain unchanged in the future.')) . '</li></ul>';
                 }
                 $a = "<ul class='Inputfields";
-                $b = "<div id='scheduleplan'>" . $text . "</div><br><ul class='Inputfields";
+                $b = "<div class='jkpp-scheduleplan'>" . $text . "</div><br><ul class='Inputfields";
                 $return = str_replace($a, $b, $return);
 
             }
@@ -1479,6 +1473,7 @@
             $f = $this->modules->get('InputfieldCheckboxes');
             $f->label = $this->_('Add fields to templates');
             $f->attr('name', 'input_templates');
+            $f->prependMarkup = $this->getToggleMarkup(); // only on this field - not on checkboxes of other modules
 
             foreach ($this->getTemplates() as $templateName) {
                 $f->addOption($templateName, $templateName);

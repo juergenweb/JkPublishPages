@@ -1,0 +1,11 @@
+{
+    "name": "jkpublishpages-js-tests",
+    "private": true,
+    "description": "JavaScript tests of the ProcessWire module JkPublishPages",
+    "scripts": {
+        "test": "node --test tests/js/JkPublishPages.test.mjs"
+    },
+    "devDependencies": {
+        "jsdom": "^24.0.0"
+    }
+}

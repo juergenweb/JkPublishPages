@@ -1,16 +1,18 @@
+/* JkPublishPages - all selectors are namespaced with "jkpp-", because this file is loaded on every admin page */
 
-#toggle-link {
+.jkpp-toggle-link {
+    display: inline-block;
+    margin: 0 0 0.5em;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
     text-decoration: underline;
-    display:inline-block;
-}
-
-#toggle-link:hover {
-    text-decoration: none;
     cursor: pointer;
 }
 
-p.delete-info {
-    background: #d8eafc;
-    padding: 5px;
-    color: #1e87f0;
+.jkpp-toggle-link:hover,
+.jkpp-toggle-link:focus {
+    text-decoration: none;
 }
