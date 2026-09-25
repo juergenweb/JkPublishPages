@@ -32,7 +32,6 @@
             'jk_publish_open_END'
         ];
 
-        protected array $templates = []; // array of all templates which contain at least one of the module fields
         protected array $actions = []; // array that holds all possible actions after publishing has ended
         protected PageArray|null $parent_pages = null; // allowed new parent pages - will be loaded only if needed
         protected bool $parent_pages_loaded = false;
@@ -124,15 +123,6 @@
                 }
             }
             return $templates;
-        }
-
-        /**
-         * @param \ProcessWire\WireArray|\ProcessWire\Module|\ProcessWire\Wire|\ProcessWire\WireData $field
-         * @return \ProcessWire\Module|\ProcessWire\Wire|\ProcessWire\WireArray|\ProcessWire\WireData
-         */
-        public function getModule(WireArray|Module|Wire|WireData $field): WireData|Wire|Module|WireArray
-        {
-            return $field;
         }
 
         /**
@@ -334,7 +324,7 @@
             $field = $event->object;
 
             // run only on this field
-            if ($this->getModule($field)->name === 'jk_move_child') {
+            if ($field->name === 'jk_move_child') {
                 if ($field->className == 'InputfieldSelect') {
 
                     if ($field->getOptions()) {
@@ -506,28 +496,6 @@
         }
 
         /**
-         * Helper function to convert a date to a timestamp or return null if nothing is entered
-         * @param int|string|null $datevalue
-         * @param string|null $dateformat
-         * @return int|null
-         * @throws \ProcessWire\WireException
-         */
-        protected function convertDateValue(int|string|null $datevalue, string|null $dateformat = null): int|null
-        {
-
-            if (!empty($datevalue) && ($datevalue != '')) {
-                if (is_string($datevalue)) {
-                    if ($this->wire('sanitizer')->date($datevalue, $dateformat)) {
-                        return $this->wire('datetime')->stringToTimestamp($datevalue, $dateformat);
-                    }
-                    return null;
-                }
-                return $datevalue;
-            }
-            return null;
-        }
-
-        /**
          * Check if a given date is in time range between 1 date or 2 dates or not
          * Returns true if it is in time range or false if not
          * @param int|string|null $startdate
@@ -546,9 +514,9 @@
             // 1 …only published
 
             $startdate_field = $this->wire('fields')->get('jk_publish_from');
-            $startdate_format = implode(' ', [$startdate_field->dateInputFormat, $startdate_field->timeInputFormat]);
+            $startdate_format = $startdate_field ? implode(' ', [$startdate_field->dateInputFormat, $startdate_field->timeInputFormat]) : '';
             $untildate_field = $this->wire('fields')->get('jk_publish_until');
-            $untildate_format = implode(' ', [$untildate_field->dateInputFormat, $untildate_field->timeInputFormat]);
+            $untildate_format = $untildate_field ? implode(' ', [$untildate_field->dateInputFormat, $untildate_field->timeInputFormat]) : '';
 
             // if no date to check is entered, then the current date/time will be used instead
             $check_ts = (is_null($date_to_check)) ? time() : $date_to_check;
@@ -805,26 +773,11 @@
                                 $msg[] = sprintf($save_page_with_status, $published_text, $past_text, $empty_text);
                             }
                         } else {
-                            // page should be unpublished
-                            if ($start_ts <= time()) {
-                                if (!is_null($end_ts)) {
-
-                                    if ($end_ts <= time()) {
-                                        //should be published
-                                        if ($wanted_action == 1)
-                                            $validation = false;
-                                    } else {
-                                        if ($wanted_action == -1)
-                                            $validation = false;
-                                    }
-                                } else {
-                                    $validation = false;
-                                }
-
-                                // value is in the past or in the present → error
-                                if (!$validation)
-                                    $msg[] = sprintf($save_page_with_status, $unpublished_text, $future_text, $empty_text);
-
+                            // page should be unpublished, but the dates require the status "published"
+                            // (start date reached and end date not reached or empty) → error
+                            if (JkPublishPagesRules::getPublishingCode($start_ts, $end_ts, time()) === 1) {
+                                $validation = false;
+                                $msg[] = sprintf($save_page_with_status, $unpublished_text, $future_text, $empty_text);
                             }
                         }
 
@@ -928,20 +881,6 @@
         }
 
         /**
-         * Helper function to check if the array contains specific keys by name
-         * @param array $data
-         * @param array $keynames
-         * @return bool
-         */
-        protected function checkForArrayKeysByName(array $data, array $keynames): bool
-        {
-            if (count(array_intersect_key(array_flip($keynames), $data)) === count($keynames)) {
-                return true;
-            }
-            return false;
-        }
-
-        /**
          * Output texts for upcoming publishing actions
          * Checks if the start and end date are set, if the page is currently published or not,
          *  if the start and/or end date is in the past or in the future.
@@ -955,93 +894,79 @@
          */
         protected function getScheduleAction(Page $page, bool $removeNoChange = false): string|null
         {
+            $items = $this->getScheduleItems($page, $removeNoChange);
+            return $items ? implode(', ', $items) : null;
+        }
 
-            if ($page->hasField('jk_publish_from')) {
+        /**
+         * Get the schedule plan of a page as array of texts (one text per status change or action)
+         * The plan is calculated by JkPublishPagesRules::schedule() - the same logic the cron job uses
+         * @param \ProcessWire\Page $page
+         * @param bool $removeNoChange true: return an empty array instead of the text "remains published/unpublished"
+         * @return array
+         * @throws \ProcessWire\WireException
+         */
+        protected function getScheduleItems(Page $page, bool $removeNoChange = false): array
+        {
+            if (!$page->hasField('jk_publish_from') && !$page->hasField('jk_publish_until')) return [];
 
-                $dateformat = $this->wire('fields')->get('jk_publish_from')->dateOutputFormat;
-                $start_date = $page->getUnformatted(('jk_publish_from'));
-                $start_date_formatted = $this->wire('datetime')->date($dateformat, $start_date);
-                $end_date = $page->getUnformatted(('jk_publish_until'));
-                $end_date_formatted = $this->wire('datetime')->date($dateformat, $end_date);
-                $current_time = time();
-                $text_blocks = [];
+            $start = $page->hasField('jk_publish_from') ? (int)$page->getUnformatted('jk_publish_from') : null;
+            $end = $page->hasField('jk_publish_until') ? (int)$page->getUnformatted('jk_publish_until') : null;
+            $action = $page->hasField('jk_action_after') ? $this->getActionAfter($page) : JkPublishPagesRules::ACTION_UNPUBLISH;
 
-                // texts
-                $publish_text = $this->_('published');
-                $unpublish_text = $this->_('unpublished');
-                $nochange_text = $this->_('remains "%s"');
-                $date_text = $this->_('will be "%s" on %s');
+            $events = JkPublishPagesRules::schedule($page->isUnpublished(), $start, $end, $action, time());
 
-                // STARTDATE VALUES
-                if ((int)$start_date) {
+            // texts
+            $publish_text = $this->_('published');
+            $unpublish_text = $this->_('unpublished');
+            $date_text = $this->_('will be "%s" on %s');
+            $next_run_text = $this->_('will be "%s" on the next run of the cron job');
+            $action_texts = [
+                JkPublishPagesRules::RESULT_TRASH => $this->_('will be moved to the trash on %s'),
+                JkPublishPagesRules::RESULT_MOVE => $this->_('will be moved to the new parent page on %s'),
+                JkPublishPagesRules::RESULT_DELETE => $this->_('will be deleted permanently on %s'),
+            ];
+            $action_next_run_texts = [
+                JkPublishPagesRules::RESULT_TRASH => $this->_('will be moved to the trash on the next run of the cron job'),
+                JkPublishPagesRules::RESULT_MOVE => $this->_('will be moved to the new parent page on the next run of the cron job'),
+                JkPublishPagesRules::RESULT_DELETE => $this->_('will be deleted permanently on the next run of the cron job'),
+            ];
 
-                    if ($start_date >= $current_time) { // start date is in the future
-                        // the page is unpublished
-                        if ($page->is(Page::statusUnpublished)) {
-                            // will be published on.....
-                            $text_blocks['spd'] = sprintf($date_text, $publish_text, $start_date_formatted);
-                        }
-                    }
+            $items = [];
+            foreach ($events as $event) {
+                $result = $event['result'];
+                $at = $event['at'];
+                // format the date with the output format of the field it belongs to
+                $formatted = ($at === null) ? '' : $this->formatScheduleDate($at, ($at === $start) ? 'jk_publish_from' : 'jk_publish_until');
+
+                if ($result === JkPublishPagesRules::RESULT_PUBLISH || $result === JkPublishPagesRules::RESULT_UNPUBLISH) {
+                    $status = ($result === JkPublishPagesRules::RESULT_PUBLISH) ? $publish_text : $unpublish_text;
+                    $items[] = ($at === null) ? sprintf($next_run_text, $status) : sprintf($date_text, $status, $formatted);
+                } else if (isset($action_texts[$result])) {
+                    $items[] = ($at === null) ? $action_next_run_texts[$result] : sprintf($action_texts[$result], $formatted);
                 }
-
-                // ENDATE VALUES
-                if ((int)$end_date) {
-
-                    if ($end_date >= $current_time) {
-                        //END DATE IN THE FUTURE
-                        // will be unpublished on.....
-                        if ((int)$start_date) {
-                            $text_blocks['eud'] = sprintf($date_text, $unpublish_text, $end_date_formatted);
-                        } else {
-                            if (!$page->is(Page::statusUnpublished)) {
-                                //the page is unpublished and no automatic publishing
-                                $text_blocks['eud'] = sprintf($date_text, $unpublish_text, $end_date_formatted);
-                            }
-                        }
-
-                    }
-                }
-
-                // Special case for start date in the future and end date in the past
-                // This case needs a special treatment for the output
-                if (($start_date && $end_date) && ($start_date > $end_date)) {
-                    $text_blocks = [];
-                    if ($page->is(Page::statusUnpublished)) {
-                        // clear the array first
-                        $text_blocks['nochange'] = sprintf($nochange_text, $unpublish_text);
-                    } else {
-                        $text_blocks['nochange'] = sprintf($nochange_text, $publish_text);
-                    }
-                }
-
-                // remove all other array items and warnings if "nochange" key is present
-                if (array_key_exists('nochange', $text_blocks)) {
-                    $value = $text_blocks['nochange'];
-                    $text_blocks = [];
-                    $text_blocks['nochange'] = $value;
-
-                }
-
-                if (!$text_blocks) {
-                    // show "remains published or unpublished" text
-                    $text = ($page->is(Page::statusUnpublished)) ? $unpublish_text : $publish_text;
-                    $text_blocks = [];// clear the array first
-                    $text_blocks['nochange'] = sprintf($nochange_text, $text);
-                }
-
-                // remove all array items with key nochange if set in the function parameter
-                if ($removeNoChange) {
-                    unset($text_blocks['nochange']);
-                }
-
-                if (count($text_blocks)) {
-                    return implode(', ', $text_blocks);
-                } else {
-                    return null;
-                }
-
             }
-            return null;
+
+            if (!$items && !$removeNoChange) {
+                // show "remains published or unpublished" text
+                $items[] = sprintf($this->_('remains "%s"'), $page->isUnpublished() ? $unpublish_text : $publish_text);
+            }
+
+            return $items;
+        }
+
+        /**
+         * Format a timestamp with the output format of the given date field
+         * @param int $timestamp
+         * @param string $fieldName
+         * @return string
+         * @throws \ProcessWire\WireException
+         */
+        protected function formatScheduleDate(int $timestamp, string $fieldName): string
+        {
+            $field = $this->wire('fields')->get($fieldName);
+            $format = ($field && $field->dateOutputFormat) ? $field->dateOutputFormat : 'Y-m-d H:i';
+            return (string)$this->wire('datetime')->date($format, $timestamp);
         }
 
         /**
@@ -1063,37 +988,21 @@
             if ($InputfieldFieldset->name === 'jk_publish_open' && $page instanceof Page && $page->id) {
 
                 // create the status texts
-                if ($page->is('unpublished')) {
-                    $status_text = $this->_('unpublished');
-                } else if (!$page->is('unpublished')) {
-                    $status_text = $this->_('published');
-                } else {
-                    $status_text = '';
-                }
+                $status_text = $page->isUnpublished() ? $this->_('unpublished') : $this->_('published');
+                $text = sprintf($this->esc($this->_('Page is currently %s.')), '<b>' . $this->esc($status_text) . '</b>') . '<br>';
 
-                if ($status_text != '') {
-                    $text = sprintf($this->esc($this->_('Page is currently %s.')), '<b>' . $this->esc($status_text) . '</b>') . '<br>';
-                } else {
-                    $text = '';
-                }
-
-                $action = $this->getScheduleAction($page);
+                $items = $this->getScheduleItems($page);
 
                 $text .= '<br><u>' . $this->esc($this->_('Schedule plan:')) . '</u>';
 
-                // convert the comma separated list to an unordered list for better readability
-                if (!is_null($action)) {
-                    $items = explode(',', $action);
-                    if (count($items)) {
-                        $action = '<ul>';
-                        foreach ($items as $item) {
-                            $action .= '<li>' . $this->esc(trim($item)) . '</li>';
-                        }
-                        $action .= '</ul>';
+                // output the schedule as unordered list (the items are not split by comma anymore, because
+                // translations may contain commas)
+                if ($items) {
+                    $text .= '<ul>';
+                    foreach ($items as $item) {
+                        $text .= '<li>' . $this->esc($item) . '</li>';
                     }
-
-                    $text .= $action;
-
+                    $text .= '</ul>';
                 } else {
                     $text .= '<ul><li>' . $this->esc($this->_('The status of the publication will remain unchanged in the future.')) . '</li></ul>';
                 }
@@ -1369,14 +1278,17 @@
                 $currentTempl = wire('templates')->get($template);
 
                 if ($currentTempl) {
+                    $changed = false;
                     foreach ($this->moduleFields as $fieldName) {
                         $field = wire('fields')->get($fieldName);
 
-                        if (!$currentTempl->hasField($fieldName)) {
+                        if ($field && !$currentTempl->hasField($fieldName)) {
                             $currentTempl->fieldgroup->add($field);
+                            $changed = true;
                         }
                     }
-                    $currentTempl->fieldgroup->save();
+                    // save only templates that have been changed
+                    if ($changed) $currentTempl->fieldgroup->save();
                 }
             }
         }
@@ -1430,6 +1342,7 @@
             foreach ($this->moduleFields as $fieldName) {
                 //grab the field object
                 $f = $this->wire('fields')->get($fieldName);
+                if (!$f) continue; // field does not exist (anymore)
                 // create array if field properties that should be set and saved
                 $field_properties = ['label', 'description', 'notes'];
                 foreach ($field_properties as $property) {
@@ -1643,7 +1556,7 @@
                 $f->type = $this->modules->get('FieldtypeOptions');
                 $f->name = 'jk_action_after';
                 $f->label = $this->_('Action after publication has ended');
-                $f->inputfield = 'InputfieldChosenSelect';
+                $f->inputfieldClass = 'InputfieldSelect'; // FieldtypeOptions uses "inputfieldClass" (not "inputfield")
 
                 $f->showIf = 'jk_publish_until!=""';
                 $f->required = true;

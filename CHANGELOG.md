@@ -234,3 +234,11 @@ The cron job has been split into findCandidates() and processPage() for this pur
 - **Security hardening**
 
 The date validation now reads the values explicitly from POST and only accepts scalar values (before, $input->name was used, which also considers GET parameters and cookies depending on $config->wireInputOrder). Date fields with the input type "select" are now evaluated correctly (year, month and day are sent as separate values). The texts in the page tree, the headline and the schedule plan are now entity-encoded. The log entries of the cron job now contain the user who changed the page last, because the cron job itself runs mostly as guest. Unused methods have been removed.
+
+- **Schedule plan matches the cron job**
+
+The schedule plan in the page editor, the icon in the page tree and the sub-headline are now calculated with the same rules the cron job uses (JkPublishPagesRules::schedule()). Before, the plan could differ from what the cron job really did (e.g. a manually published page with a start date in the future was unpublished by the cron job, but the plan said nothing). The plan now also shows the action after the end of the publication (trash, move, delete) and changes that happen on the next run of the cron job. Every date is formatted with the output format of its own field, and the plan is no longer split by commas (translations may contain commas).
+
+- **Clean-up**
+
+Unused methods and properties have been removed, a date validation branch that could never be reached has been simplified, missing fields no longer cause warnings, and fields are only saved to templates if they have been changed. The select field "jk_action_after" is now created with the correct setting "inputfieldClass".

@@ -60,6 +60,31 @@
             $this->assertMatchesRegularExpression('/title="[^"<>]*"/', $event->return, 'the title attribute must not contain unencoded markup');
         }
 
+        /* schedule plan ---------------------------------------------------------------------------------------- */
+
+        public function testScheduleShowsUnpublishingOfManuallyPublishedPageWithStartInFuture(): void
+        {
+            // the old schedule text did not mention that the cron job unpublishes such a page on its next run
+            $page = self::createPage(['from' => time() + self::H, 'until' => time() + 2 * self::H, 'action' => 2]);
+
+            $items = self::callModule('getScheduleItems', self::fresh($page));
+
+            $this->assertCount(3, $items);
+            $this->assertStringContainsString('next run', $items[0]);
+            $this->assertStringContainsString('published', $items[1]);
+            $this->assertStringContainsString('trash', $items[2]);
+        }
+
+        public function testScheduleShowsRemainsTextWithoutDates(): void
+        {
+            $page = self::createPage();
+
+            // ProcessWire returns translatable texts entity-encoded
+            $items = array_map(fn($item) => html_entity_decode($item, ENT_QUOTES), self::callModule('getScheduleItems', self::fresh($page)));
+            $this->assertSame(['remains "published"'], $items);
+            $this->assertSame([], self::callModule('getScheduleItems', self::fresh($page), true));
+        }
+
         /* cron log --------------------------------------------------------------------------------------------- */
 
         public function testCronLogContainsUserWhoChangedThePage(): void

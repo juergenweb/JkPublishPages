@@ -137,6 +137,49 @@
         }
 
         /**
+         * Get the schedule of a page: all status changes and actions the cron job will execute, in chronological order
+         * The schedule is calculated with decide() - so it always matches what the cron job really does.
+         * Each entry: ['result' => RESULT_*, 'at' => timestamp or null]
+         * 'at' = null means: on the next cron run (the page does not match its settings at the moment)
+         * @param bool $isUnpublished
+         * @param int|null $start
+         * @param int|null $end
+         * @param int $action
+         * @param int $now
+         * @return array
+         */
+        public static function schedule(bool $isUnpublished, int|null $start, int|null $end, int $action, int $now): array
+        {
+            $start = self::normalizeTimestamp($start);
+            $end = self::normalizeTimestamp($end);
+
+            // points in time at which the decision can change: now, the start date and the moment after the end date
+            $points = [[$now, null]];
+            if ($start !== null && $start > $now) $points[] = [$start, $start];
+            if ($end !== null && $end >= $now) $points[] = [$end + 1, $end];
+            usort($points, fn($a, $b) => $a[0] <=> $b[0]);
+
+            $events = [];
+            foreach ($points as [$time, $displayTime]) {
+                $result = self::decide($isUnpublished, $start, $end, $action, $time);
+                if ($result === self::RESULT_NONE) continue;
+
+                $events[] = ['result' => $result, 'at' => $displayTime];
+
+                if ($result === self::RESULT_PUBLISH) {
+                    $isUnpublished = false;
+                } else if ($result === self::RESULT_UNPUBLISH) {
+                    $isUnpublished = true;
+                } else {
+                    // trash, move, delete: the page is not processed anymore afterwards
+                    // (after moving, the end date is removed and the action is reset)
+                    break;
+                }
+            }
+            return $events;
+        }
+
+        /**
          * Convert an action id to a result string
          * @param int $action
          * @return string
