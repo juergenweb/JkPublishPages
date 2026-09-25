@@ -168,3 +168,17 @@ Many thanks to MarkE from the support forum, who discovered a performance proble
 The problem was that the getParentPages() function ran on all pages, not just on pages that had a publish field within the template. This resulted in load times of up to 20 seconds if a website has a lot of pages.
 
 A new check within the getParentPages() method, which also comes as a suggestion from MarkE, should solve this problem now.
+
+## [1.3.16] 2026-09-25
+
+- **Automatic publishing fixed**
+
+The cron job did not find unpublished and hidden pages, because the page selectors did not contain "include=all" (ProcessWire adds "status<1024" automatically in this case). As a result, pages were never published automatically and hidden pages were never unpublished, trashed, moved or deleted. Access checks are disabled now too, so pages that are not viewable by guests are also processed (LazyCron runs mostly as guest).
+
+- **Cron job made more robust**
+
+Pages are no longer saved again after they have been deleted permanently or moved to the trash. A page with child pages will not be deleted silently anymore - it will be unpublished instead. If no valid new parent page is selected, the page will be unpublished instead of being moved. An error on one page no longer stops the processing of all other pages. All actions and errors are written to the log file "jkpublishpages" (Setup > Logs).
+
+- **Status change only applies to the edited page**
+
+The status change after validating the date fields was applied to every page saved during the same request (e.g. repeater items or pages saved by the cron job). Now it will only be applied to the page that is currently edited.

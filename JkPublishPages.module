@@ -48,7 +48,7 @@
                 'summary' => 'Publish and unpublish pages depending on dates and times using LazyCron.',
                 'author' => 'Jürgen Kern',
                 'href' => 'https://github.com/juergenweb/JkPublishPages',
-                'version' => '1.3.15',
+                'version' => '1.3.16',
                 'singular' => true,
                 'autoload' => true,
                 'requires' => [
@@ -127,22 +127,6 @@
         public function getModule(WireArray|Module|Wire|WireData $field): WireData|Wire|Module|WireArray
         {
             return $field;
-        }
-
-        /**
-         * Get all pages, which includes at least one of the module fields as an array containing the ids of the pages
-         * @return array
-         * @throws WireException
-         */
-        protected function getPagesWithModuleFields(): array
-        {
-            $modulefield_pages = wire('pages')->find('templates_id=' . implode('|',
-                    array_keys($this->getTemplatesWithModuleFields())) . ',include=all')->getArray();
-            $page_ids = [];
-            foreach ($modulefield_pages as $page) {
-                $page_ids[] = $page->id;
-            }
-            return $page_ids;
         }
 
         /**
@@ -605,9 +589,19 @@
         {
 
             $page = $event->arguments(0);
-            if ($this->wire('input')->post['changestatus']) {
+            $input = $this->wire('input');
 
-                $status = $this->wire('input')->post['changestatus'];
+            if (!$input->post['changestatus']) return;
+
+            // apply the status change only to the page that is currently edited in the page editor
+            // and not to other pages saved during the same request (repeater items, pages saved by the cron job, ...)
+            $edited_page_id = (int)$input->post('id') ?: (int)$input->get('id');
+            if (!$edited_page_id || $page->id !== $edited_page_id) return;
+            if (!$page->hasField('jk_publish_from') && !$page->hasField('jk_publish_until')) return;
+
+            if ($input->post['changestatus']) {
+
+                $status = $input->post['changestatus'];
 
                 if ($status === 'unpub') {
                     $page->setStatus('unpublished');
@@ -1039,22 +1033,25 @@
         protected function runJkPublishPages(): void
         {
 
-            // find all templates, which have a start date field
+            // find all templates, which have a start or an end date field
             $templates = [];
             foreach ($this->wire('templates') as $template) {
-                if ($template->hasField('jk_publish_from')) {
+                if ($template->hasField('jk_publish_from') || $template->hasField('jk_publish_until')) {
                     $templates[] = $template->id;
                 }
             }
 
-            $templateSelector = ($templates) ? 'template=' . implode('|', $templates) . ',' : '';
+            // no template contains publishing fields → nothing to do
+            if (!$templates) return;
 
             // create general selector for unpublished and published pages
-            $selectors = 'id=' . implode('|',
-                    $this->getPagesWithModuleFields()) . ',';// exclude all pages, which do not have module fields inside
-
-            $selectors .= 'has_parent!=' . wire("config")->adminRootPageID . ','; // exclude all pages under the admin control panel
-            $selectors .= 'has_parent!=' . wire("config")->trashPageID . ','; // exclude all pages in trash
+            $selectors = 'templates_id=' . implode('|', $templates) . ','; // only pages with publishing fields
+            $selectors .= 'has_parent!=' . $this->wire('config')->adminRootPageID . ','; // exclude all pages under the admin control panel
+            $selectors .= 'has_parent!=' . $this->wire('config')->trashPageID . ','; // exclude all pages in trash
+            $selectors .= 'status<' . Page::statusTrash . ','; // exclude trashed pages
+            // include hidden and unpublished pages and disable access checks (LazyCron runs mostly as guest user)
+            // without include=all ProcessWire adds "status<1024" automatically, so unpublished pages would never be found
+            $selectors .= 'include=all,';
 
             /* Publish conditions */
             // 1) jk_publish_from<=now, jk_publish_until=>now
@@ -1066,51 +1063,129 @@
             // 2) jk_publish_from<=now, jk_publish_until<=now
             // 4) jk_publish_from=, jk_publish_until<=now
 
-            $pagesToUnpublish = wire("pages")->find($selectors . $templateSelector . ",(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)");
+            // only pages which are published at the moment
+            $pagesToUnpublish = $this->wire('pages')->find($selectors . 'status!=unpublished,(jk_publish_from>=now, jk_publish_until>=now),(jk_publish_from>=now, jk_publish_until=),(jk_publish_from<=now, jk_publish_until<=now),(jk_publish_from=, jk_publish_until<=now)');
 
-            // remove all pages, which status is unpublished at the moment
-            foreach ($pagesToUnpublish as $key => $p) {
-                if ($p->isUnpublished()) {
-                    $pagesToUnpublish->remove($key);
-                }
-            }
+            // only pages which are unpublished at the moment
+            $pagesToPublish = $this->wire('pages')->find($selectors . 'status=unpublished,(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)');
 
-            $pagesToPublish = wire("pages")->find($selectors . $templateSelector . ",(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)");
-
-            // remove all pages, which status is published at the moment
-            foreach ($pagesToPublish as $key => $p) {
-                if (!$p->isUnpublished()) {
-                    $pagesToPublish->remove($key);
-                }
-            }
-
-            $results = $pagesToUnpublish->import($pagesToPublish);
-
-            foreach ($results as $p) {
-                $p->setOutputFormatting(false);
-                if ($p->isUnpublished()) {
+            // publish pages
+            foreach ($pagesToPublish as $p) {
+                try {
+                    $p->of(false);
                     $p->removeStatus(Page::statusUnpublished);
-                } else {
+                    $p->save();
+                    $this->logCron($p, 'published');
+                } catch (\Throwable $e) {
+                    // an error on one page must not stop the processing of all other pages
+                    $this->logCron($p, 'ERROR on publishing: ' . $e->getMessage());
+                }
+            }
 
-                    switch ($p->jk_action_after->id) {
-                        case('2'): // move to trash
-                            $p->trash();
+            // unpublish, trash, move or delete pages
+            foreach ($pagesToUnpublish as $p) {
+                try {
+                    $p->of(false);
+
+                    switch ($this->getActionAfter($p)) {
+                        case 2: // move to trash (Pages::trash() saves the page itself)
+                            $this->wire('pages')->trash($p);
+                            $this->logCron($p, 'moved to trash');
                             break;
-                        case('3'): // move page under a new parent
+
+                        case 3: // move page under a new parent
+                            $new_parent = $this->getNewParent($p);
+                            if (!$new_parent) {
+                                // no valid parent page selected → unpublish the page instead
+                                $p->addStatus(Page::statusUnpublished);
+                                $p->save();
+                                $this->logCron($p, 'unpublished (no valid new parent page selected)');
+                                break;
+                            }
                             $p->jk_publish_until = '';
-                            $p->jk_action_after = '1';
-                            $p->parent = $p->jk_move_child->first();
+                            $p->jk_action_after = 1;
+                            $p->parent = $new_parent;
+                            $p->save();
+                            $this->logCron($p, 'moved to new parent ' . $new_parent->path);
                             break;
-                        case('4'): // delete permanently
-                            $p->delete();
+
+                        case 4: // delete permanently (no save afterwards - the page does not exist anymore)
+                            if ($p->numChildren) {
+                                // do not delete child pages silently → unpublish the page instead
+                                $p->addStatus(Page::statusUnpublished);
+                                $p->save();
+                                $this->logCron($p, 'unpublished instead of deleted, because the page has children');
+                                break;
+                            }
+                            $path = $p->path;
+                            $id = $p->id;
+                            $this->wire('pages')->delete($p);
+                            $this->wire('log')->save('jkpublishpages', "Page $id ($path) deleted permanently");
                             break;
+
                         default: // set page status to unpublished
                             $p->addStatus(Page::statusUnpublished);
+                            $p->save();
+                            $this->logCron($p, 'unpublished');
                     }
+                } catch (\Throwable $e) {
+                    // an error on one page must not stop the processing of all other pages
+                    $this->logCron($p, 'ERROR after end of publication: ' . $e->getMessage());
                 }
-                $p->save();
             }
 
+        }
+
+        /**
+         * Get the id of the action that should be executed after the publication has ended (default: 1 = unpublish)
+         * @param \ProcessWire\Page $p
+         * @return int
+         */
+        protected function getActionAfter(Page $p): int
+        {
+            if (!$p->hasField('jk_action_after')) return 1;
+
+            $value = $p->getUnformatted('jk_action_after');
+            if ($value instanceof WireArray) {
+                $value = $value->first();
+            }
+            if ($value instanceof SelectableOption) {
+                $value = $value->id;
+            }
+            $action = (int)(is_scalar($value) ? $value : 0);
+            return in_array($action, [1, 2, 3, 4], true) ? $action : 1;
+        }
+
+        /**
+         * Get the page selected as new parent page or null if no valid page is selected
+         * @param \ProcessWire\Page $p
+         * @return \ProcessWire\Page|null
+         */
+        protected function getNewParent(Page $p): Page|null
+        {
+            if (!$p->hasField('jk_move_child')) return null;
+
+            $value = $p->getUnformatted('jk_move_child');
+            if ($value instanceof PageArray) {
+                $value = $value->first();
+            }
+            if (!$value instanceof Page || !$value->id) return null;
+
+            // the new parent must not be the page itself, one of its children or a page in the trash
+            if ($value->id === $p->id || $value->parents->has($p) || $value->isTrash()) return null;
+
+            return $value;
+        }
+
+        /**
+         * Write an entry to the log file "jkpublishpages" (Setup > Logs)
+         * @param \ProcessWire\Page $p
+         * @param string $msg
+         * @return void
+         */
+        protected function logCron(Page $p, string $msg): void
+        {
+            $this->wire('log')->save('jkpublishpages', 'Page ' . $p->id . ' (' . $p->path . '): ' . $msg);
         }
 
         /**
