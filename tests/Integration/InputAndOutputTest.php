@@ -65,24 +65,34 @@
         public function testScheduleShowsUnpublishingOfManuallyPublishedPageWithStartInFuture(): void
         {
             // the old schedule text did not mention that the cron job unpublishes such a page on its next run
-            $page = self::createPage(['from' => time() + self::H, 'until' => time() + 2 * self::H, 'action' => 2]);
+            $page = self::fresh(self::createPage(['from' => time() + self::H, 'until' => time() + 2 * self::H, 'action' => 2]));
+            $start = (int)$page->getUnformatted('jk_publish_from');
+            $end = (int)$page->getUnformatted('jk_publish_until');
 
-            $items = self::callModule('getScheduleItems', self::fresh($page));
+            // expected texts from the module itself, so the test also works with a translated admin
+            $expected = [
+                sprintf(self::text('will be "%s" on the next run of the cron job'), self::text('unpublished')),
+                sprintf(self::text('will be "%s" on %s'), self::text('published'), self::callModule('formatScheduleDate', $start, 'jk_publish_from')),
+                sprintf(self::text('will be moved to the trash on %s'), self::callModule('formatScheduleDate', $end, 'jk_publish_until')),
+            ];
 
-            $this->assertCount(3, $items);
-            $this->assertStringContainsString('next run', $items[0]);
-            $this->assertStringContainsString('published', $items[1]);
-            $this->assertStringContainsString('trash', $items[2]);
+            $this->assertSame($expected, self::callModule('getScheduleItems', $page));
         }
 
         public function testScheduleShowsRemainsTextWithoutDates(): void
         {
-            $page = self::createPage();
+            $page = self::fresh(self::createPage());
 
-            // ProcessWire returns translatable texts entity-encoded
-            $items = array_map(fn($item) => html_entity_decode($item, ENT_QUOTES), self::callModule('getScheduleItems', self::fresh($page)));
-            $this->assertSame(['remains "published"'], $items);
-            $this->assertSame([], self::callModule('getScheduleItems', self::fresh($page), true));
+            $this->assertSame([sprintf(self::text('remains "%s"'), self::text('published'))], self::callModule('getScheduleItems', $page));
+            $this->assertSame([], self::callModule('getScheduleItems', $page, true));
+        }
+
+        /**
+         * Translated text of the module (in the language of the current user)
+         */
+        private static function text(string $text): string
+        {
+            return self::module()->_($text);
         }
 
         /* cron log --------------------------------------------------------------------------------------------- */
