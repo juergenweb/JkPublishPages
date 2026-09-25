@@ -246,3 +246,7 @@ Unused methods and properties have been removed, a date validation branch that c
 - **German translations**
 
 German translations for all new texts (permission checks, schedule plan) added to the RockLanguage file and the CSV language file.
+
+- **More tests**
+
+Unit tests for the boundary cases (start or end date exactly at the current time) and integration tests for the date validation in the page editor (error messages, the status the page will be saved with and the warning about a status change) for all combinations of the two date fields.

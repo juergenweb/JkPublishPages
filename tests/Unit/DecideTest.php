@@ -39,6 +39,17 @@
 
                 // invalid settings
                 'start after end → nothing' => [$now - $h, $now - 2 * $h, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start in future, end in past → nothing' => [$now + $h, $now - $h, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start in future, end exactly now → nothing' => [$now + $h, $now, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+
+                // boundaries: exactly now
+                'only end exactly now, action unpublish → nothing' => [null, $now, Rules::ACTION_UNPUBLISH, Rules::RESULT_NONE],
+                'only end exactly now, action delete → nothing (not ended yet)' => [null, $now, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start and end exactly now → publish' => [$now, $now, Rules::ACTION_DELETE, Rules::RESULT_PUBLISH],
+                'start exactly now, end in future → publish' => [$now, $now + $h, Rules::ACTION_DELETE, Rules::RESULT_PUBLISH],
+                'start exactly now, end in past → nothing (start after end)' => [$now, $now - $h, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'only end in past, action unpublish → nothing' => [null, $now - $h, Rules::ACTION_UNPUBLISH, Rules::RESULT_NONE],
+                'end one second in the past, action trash → trash' => [$now - $h, $now - 1, Rules::ACTION_TRASH, Rules::RESULT_TRASH],
             ];
         }
 
@@ -74,6 +85,16 @@
 
                 // invalid settings
                 'start after end → nothing' => [$now + $h, $now - $h, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start in future, end exactly now → nothing' => [$now + $h, $now, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start exactly now, end in past → nothing (start after end)' => [$now, $now - $h, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+
+                // boundaries: exactly now
+                'only end exactly now → nothing (not ended yet)' => [null, $now, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'only start exactly now → nothing' => [$now, null, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start and end exactly now → nothing' => [$now, $now, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'start exactly now, end in future → nothing' => [$now, $now + $h, Rules::ACTION_DELETE, Rules::RESULT_NONE],
+                'end one second in the past, action delete → delete' => [$now - $h, $now - 1, Rules::ACTION_DELETE, Rules::RESULT_DELETE],
+                'only end in past, action unpublish → unpublish' => [null, $now - $h, Rules::ACTION_UNPUBLISH, Rules::RESULT_UNPUBLISH],
             ];
         }
 
