@@ -1501,8 +1501,8 @@
 
             }
 
-            // create select field for action after publishing time has ended
-            if (!wire('fields')->get('jk_show_parent')) {
+            // create page field for the new parent page
+            if (!wire('fields')->get('jk_move_child')) {
                 $f = new Field();
                 $f->type = $this->modules->get('FieldtypePage');
                 $f->name = 'jk_move_child';
@@ -1517,17 +1517,21 @@
                 $f->save();
             }
 
-            // create fieldset
+            // create fieldset opener and closer separately
+            // (one of them may be left over from a previous, not completely successful uninstallation)
             if (!wire('fields')->get('jk_publish_open')) {
                 $opener = new Field();
-                $opener->type = new FieldtypeFieldsetOpen();
-                $opener->name = "jk_publish_open";
+                $opener->type = $this->modules->get('FieldtypeFieldsetOpen');
+                $opener->name = 'jk_publish_open';
                 $opener->label = $this->_('Publishing options');
                 $opener->save();
+            }
 
+            $closer_name = 'jk_publish_open' . FieldtypeFieldsetOpen::fieldsetCloseIdentifier;
+            if (!wire('fields')->get($closer_name)) {
                 $closer = new Field();
-                $closer->type = new FieldtypeFieldsetClose();
-                $closer->name = "jk_publish_open" . FieldtypeFieldsetOpen::fieldsetCloseIdentifier;
+                $closer->type = $this->modules->get('FieldtypeFieldsetClose');
+                $closer->name = $closer_name;
                 $closer->save();
             }
 
@@ -1541,12 +1545,23 @@
          */
         public function ___uninstall(): void
         {
-            // remove module fields from every template
-            $this->removeFields($this->input_templates);
-            // delete all fields afterwards from the database
-            foreach ($this->moduleFields as $fieldname) {
-                $field = wire('fields')->get($fieldname);
-                $this->wire('fields')->delete($field);
+            // delete the fields in reverse order (closer first, opener last)
+            foreach (array_reverse($this->moduleFields) as $fieldname) {
+                $field = $this->wire('fields')->get($fieldname);
+                if (!$field) continue; // field does not exist (anymore)
+
+                try {
+                    // remove the field from every fieldgroup that uses it - not only from the templates
+                    // stored in the module config (the field could have been added manually to other templates)
+                    foreach ($field->getFieldgroups() as $fieldgroup) {
+                        $fieldgroup->remove($field);
+                        $fieldgroup->save();
+                    }
+                    $this->wire('fields')->delete($field);
+                } catch (\Throwable $e) {
+                    // do not stop the uninstallation - otherwise the remaining fields would be left over
+                    $this->warning(sprintf($this->_('Field "%s" could not be deleted: %s'), $fieldname, $e->getMessage()));
+                }
             }
         }
 

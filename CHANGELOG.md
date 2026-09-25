@@ -182,3 +182,7 @@ Pages are no longer saved again after they have been deleted permanently or move
 - **Status change only applies to the edited page**
 
 The status change after validating the date fields was applied to every page saved during the same request (e.g. repeater items or pages saved by the cron job). Now it will only be applied to the page that is currently edited.
+
+- **Installation after incomplete uninstallation fixed**
+
+If one of the fields (e.g. the fieldset closer "jk_publish_open_END") was left over from a previous uninstallation, the installation failed with "Field may not be named ... because it is already used by another field". The installation now checks every field separately and reuses existing fields. The check for the field "jk_move_child" used a wrong field name ("jk_show_parent") and has been corrected. The uninstallation now removes the fields from all templates (not only from the templates stored in the module config), skips missing fields and does not stop if one field cannot be deleted.
