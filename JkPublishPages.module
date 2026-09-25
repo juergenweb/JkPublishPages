@@ -37,6 +37,7 @@
         protected PageArray|null $parent_pages = null; // allowed new parent pages - will be loaded only if needed
         protected bool $parent_pages_loaded = false;
 
+        protected string $cronChangedBy = ''; // name of the user who changed the page processed by the cron job last
         protected string $statusToSet = ''; // status (pub/unpub) determined by validateDates() for the edited page - never taken from user input
         protected string $pageListAction = ''; // publish action (pub/unpub) triggered inside the page tree during the current request
         protected int $pageListActionPageId = 0; // id of the page the page tree action belongs to
@@ -494,7 +495,7 @@
                 $subHeadline = '';
                 if (!empty($action)) {
                     $icon = ' (*)';
-                    $subHeadline = '<p class="notes" style="padding: 5px; font-size: 20px;"><i class="fa fa-exclamation-triangle"></i>&nbsp;<sup>*</sup>' . ucfirst($action) . '</p>';
+                    $subHeadline = '<p class="notes" style="padding: 5px; font-size: 20px;"><i class="fa fa-exclamation-triangle"></i>&nbsp;<sup>*</sup>' . $this->esc(ucfirst($action)) . '</p>';
                 }
                 $this->wire('processHeadline', $headline . $icon);
 
@@ -567,42 +568,6 @@
             $end_ts = is_numeric($end_ts) ? (int)$end_ts : null;
 
             return JkPublishPagesRules::getPublishingCode($start_ts, $end_ts, $check_ts);
-        }
-
-        /**
-         * Method to add a new status code to the WireInputData object
-         * @param \ProcessWire\WireInputData $input
-         * @param int $status
-         * @return \ProcessWire\WireInputData
-         */
-        protected function addInputStatus(WireInputData $input, int $status): WireInputData
-        {
-            if (isset($input->status)) {
-                $status_array = $input->status;
-                array_unshift($status_array, $status);
-                $input->set('status', $status_array);
-            } else {
-                $input->set('status', [$status]);
-            }
-            return $input;
-        }
-
-        /**
-         * Method to remove a specific status code from the WireInputData object
-         * @param \ProcessWire\WireInputData $input
-         * @param int $status
-         * @return \ProcessWire\WireInputData
-         */
-        protected function removeInputStatus(WireInputData $input, int $status): WireInputData
-        {
-            if (isset($input->status)) {
-                if (($key = array_search($status, $input->status)) !== false) {
-                    $status_array = $input->status;
-                    unset($status_array[$key]);
-                    $input->set('status', $status_array);
-                }
-            }
-            return $input;
         }
 
         /**
@@ -724,36 +689,50 @@
          */
         private function convertDateToTimeStamp(string $fieldName): int|null
         {
-            $input = $this->wire('input');
-            if ($input->$fieldName) {
+            // read only from POST (not via $input->name, which also considers GET and cookies depending on
+            // $config->wireInputOrder) and accept only scalar values
+            $field = $this->wire('fields')->get($fieldName);
+            if (!$field) return null;
 
-                $date = $this->wire('datetime');
-                $field = $this->wire('fields')->get($fieldName);
-                $input_type = $field->inputType;
-
-                switch ($input_type) {
-                    case('select'):
-                        $datetime = $input->$fieldName;
-                        $dateformat = 'Y-m-d H:i';
-                        break;
-                    case('text'):
-                        $datetime = $input->$fieldName;
-                        $date_format = $field->dateInputFormat;
-                        $time_format = $field->timeInputFormat;
-                        $dateformat = implode(' ', [$date_format, $time_format]);
-                        break;
-                    case('html'):
-                        $date_string = $input->$fieldName;
-                        $timefield_name = $fieldName . '__time';
-                        $time_string = $input->$timefield_name;
-                        $datetime = implode(' ', [$date_string, $time_string]);
-                        $dateformat = 'Y-m-d H:i';
-                        break;
-                }
-
-                return $date->stringToTimestamp($datetime, $dateformat);
+            // input type "select": year, month and day are sent as separate values (name__y, name__m, name__d)
+            if ($field->inputType === 'select') {
+                $year = (int)$this->getPostString($fieldName . '__y');
+                $month = (int)$this->getPostString($fieldName . '__m');
+                $day = (int)$this->getPostString($fieldName . '__d');
+                if (!$year || !$month || !$day || !checkdate($month, $day, $year)) return null;
+                return (int)mktime(0, 0, 0, $month, $day, $year);
             }
-            return null;
+
+            $value = $this->getPostString($fieldName);
+            if ($value === '') return null;
+
+            switch ($field->inputType) {
+                case 'text':
+                    $datetime = $value;
+                    $dateformat = implode(' ', [$field->dateInputFormat, $field->timeInputFormat]);
+                    break;
+                case 'html':
+                    $datetime = trim($value . ' ' . $this->getPostString($fieldName . '__time'));
+                    $dateformat = 'Y-m-d H:i';
+                    break;
+                default:
+                    return null;
+            }
+
+            $timestamp = $this->wire('datetime')->stringToTimestamp($datetime, $dateformat);
+            return is_numeric($timestamp) ? (int)$timestamp : null;
+        }
+
+        /**
+         * Get a POST value as trimmed string - arrays and other non-scalar values are ignored
+         * @param string $name
+         * @return string
+         * @throws \ProcessWire\WireException
+         */
+        protected function getPostString(string $name): string
+        {
+            $value = $this->wire('input')->post($name);
+            return is_scalar($value) ? trim((string)$value) : '';
         }
 
         /**
@@ -789,10 +768,12 @@
                 $old_date_text = $this->_('The date you have entered was "%s" (%s).');
 
                 // determine which status should be saved for this page (true = published, false = unpublished)
-                if (isset($input->submit_publish)) {
+                if ($input->post('submit_publish') !== null) {
                     $action_publish = true;
                 } else {
-                    $action_publish = (isset($input->status) && (in_array('2048', $input->status))) ? false : true; // overwrite value depending on if status code 2048 is present
+                    // status checkboxes of the page editor (POST only) - status code 2048 = unpublished
+                    $post_status = $input->post('status');
+                    $action_publish = !(is_array($post_status) && in_array('2048', array_map('strval', $post_status), true));
                 }
 
                 // check if wanted action is the same as the allowed action
@@ -884,11 +865,11 @@
                 if ($comparison) {
 
                     $msg[] = $this->_('The value of the the start publishing field must be before the value of the end of publishing field.');
-                    $msg[] = sprintf($this->_('You have entered "%s", which is after the end date "%s".'), $input->jk_publish_from, $input->jk_publish_until);
+                    $msg[] = sprintf($this->_('You have entered "%s", which is after the end date "%s".'), $this->getPostString('jk_publish_from'), $this->getPostString('jk_publish_until'));
 
                 } else if (!$validation) {
 
-                    $msg[] = sprintf($old_date_text, $input->$field_name, $tense);
+                    $msg[] = sprintf($old_date_text, $this->getPostString($field_name), $tense);
                 }
 
                 // set status to publish or unpublish
@@ -939,7 +920,7 @@
 
             if (!empty($action)) {
 
-                $icon = '<i class="fa fa-clock-o" title="' . ucfirst($action) . '"></i>';
+                $icon = '<i class="fa fa-clock-o" title="' . $this->esc(ucfirst($action)) . '"></i>';
                 $return = str_replace("<span class='label_title'>", "<span class='label_title'>" . $icon, $return);
             }
 
@@ -1079,7 +1060,7 @@
             $return = $event->return;
 
             // get the JkpublishPages fieldset
-            if ($InputfieldFieldset->name === 'jk_publish_open') {
+            if ($InputfieldFieldset->name === 'jk_publish_open' && $page instanceof Page && $page->id) {
 
                 // create the status texts
                 if ($page->is('unpublished')) {
@@ -1091,14 +1072,14 @@
                 }
 
                 if ($status_text != '') {
-                    $text = sprintf($this->_('Page is currently %s.'), '<b>' . $status_text . '</b>') . '<br>';
+                    $text = sprintf($this->esc($this->_('Page is currently %s.')), '<b>' . $this->esc($status_text) . '</b>') . '<br>';
                 } else {
                     $text = '';
                 }
 
                 $action = $this->getScheduleAction($page);
 
-                $text .= '<br><u>' . $this->_('Schedule plan:') . '</u>';
+                $text .= '<br><u>' . $this->esc($this->_('Schedule plan:')) . '</u>';
 
                 // convert the comma separated list to an unordered list for better readability
                 if (!is_null($action)) {
@@ -1106,7 +1087,7 @@
                     if (count($items)) {
                         $action = '<ul>';
                         foreach ($items as $item) {
-                            $action .= '<li>' . $item . '</li>';
+                            $action .= '<li>' . $this->esc(trim($item)) . '</li>';
                         }
                         $action .= '</ul>';
                     }
@@ -1114,7 +1095,7 @@
                     $text .= $action;
 
                 } else {
-                    $text .= '<ul><li>' . $this->_('The status of the publication will remain unchanged in the future.') . '</li></ul>';
+                    $text .= '<ul><li>' . $this->esc($this->_('The status of the publication will remain unchanged in the future.')) . '</li></ul>';
                 }
                 $a = "<ul class='Inputfields";
                 $b = "<div id='scheduleplan'>" . $text . "</div><br><ul class='Inputfields";
@@ -1195,6 +1176,10 @@
          */
         protected function processPage(Page $p, int $now): void
         {
+            // remember the user before the page is saved by the cron job (which changes modified_users_id)
+            $modified_user = $p->modifiedUser;
+            $this->cronChangedBy = ($modified_user && $modified_user->id) ? (string)$modified_user->name : 'unknown';
+
             try {
                 $p->of(false);
 
@@ -1238,7 +1223,7 @@
                         $path = $p->path;
                         $id = $p->id;
                         $this->wire('pages')->delete($p);
-                        $this->wire('log')->save('jkpublishpages', "Page $id ($path) deleted permanently");
+                        $this->wire('log')->save('jkpublishpages', "Page $id ($path): deleted permanently [last changed by: {$this->cronChangedBy}]");
                         break;
 
                     case JkPublishPagesRules::RESULT_UNPUBLISH:
@@ -1250,6 +1235,8 @@
             } catch (\Throwable $e) {
                 // an error on one page must not stop the processing of all other pages
                 $this->logCron($p, 'ERROR: ' . $e->getMessage());
+            } finally {
+                $this->cronChangedBy = '';
             }
         }
 
@@ -1319,6 +1306,17 @@
         }
 
         /**
+         * Entity encode a text for the output in the admin (no double encoding of existing entities)
+         * @param string $text
+         * @return string
+         * @throws \ProcessWire\WireException
+         */
+        protected function esc(string $text): string
+        {
+            return $this->wire('sanitizer')->entities1($text);
+        }
+
+        /**
          * Write an entry to the log file "jkpublishpages" (Setup > Logs)
          * @param \ProcessWire\Page $p
          * @param string $msg
@@ -1326,6 +1324,8 @@
          */
         protected function logCron(Page $p, string $msg): void
         {
+            // who has changed the page (and its publishing settings) last - the cron job itself runs mostly as guest
+            if ($this->cronChangedBy !== '') $msg .= ' [last changed by: ' . $this->cronChangedBy . ']';
             $this->wire('log')->save('jkpublishpages', 'Page ' . $p->id . ' (' . $p->path . '): ' . $msg);
         }
 

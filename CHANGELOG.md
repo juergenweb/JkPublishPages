@@ -230,3 +230,7 @@ PHPUnit tests can be run with "composer install" and "composer test" (requires P
 New integration tests run against the ProcessWire installation the module is installed in ("composer test:integration"). They create their own test template, test pages, a test role and a test user and remove everything afterwards. The cron job itself is never executed (it would process all pages of the site): the tests only use findCandidates() (read only) and processPage() on their own test pages. The tests cover publishing, unpublishing, trash, move and delete, hidden pages, the cron job running as guest, and the permission checks when saving a page. Another installation can be used via the environment variable JKPP_PW_INDEX.
 
 The cron job has been split into findCandidates() and processPage() for this purpose.
+
+- **Security hardening**
+
+The date validation now reads the values explicitly from POST and only accepts scalar values (before, $input->name was used, which also considers GET parameters and cookies depending on $config->wireInputOrder). Date fields with the input type "select" are now evaluated correctly (year, month and day are sent as separate values). The texts in the page tree, the headline and the schedule plan are now entity-encoded. The log entries of the cron job now contain the user who changed the page last, because the cron job itself runs mostly as guest. Unused methods have been removed.
