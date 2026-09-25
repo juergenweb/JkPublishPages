@@ -242,3 +242,7 @@ The schedule plan in the page editor, the icon in the page tree and the sub-head
 - **Clean-up**
 
 Unused methods and properties have been removed, a date validation branch that could never be reached has been simplified, missing fields no longer cause warnings, and fields are only saved to templates if they have been changed. The select field "jk_action_after" is now created with the correct setting "inputfieldClass".
+
+- **German translations**
+
+German translations for all new texts (permission checks, schedule plan) added to the RockLanguage file and the CSV language file.
