@@ -34,7 +34,8 @@
         protected array $actions = []; // array that holds all possible actions after publishing has ended
         protected PageArray|null $parent_pages;
 
-        protected int $publish_code = 0; // determines if the given page could be published or not (-1,0,1) according to the date settings
+        protected string $pageListAction = ''; // publish action (pub/unpub) triggered inside the page tree during the current request
+        protected int $pageListActionPageId = 0; // id of the page the page tree action belongs to
         protected Page $page; // the current page, the inputfield lives on
 
         /**
@@ -136,9 +137,9 @@
         public function init(): void
         {
 
-            $this->page = $this->wire('pages')->get($this->input->get->id);
-
-            $this->publish_code = $this->getPublishingCode($this->page->jk_publish_from, $this->page->jk_publish_until);
+            // sanitize the id as integer - never pass raw user input as a selector to $pages->get()
+            $page_id = (int)$this->wire('input')->get->int('id');
+            $this->page = ($page_id > 0) ? $this->wire('pages')->get($page_id) : new NullPage();
 
             // find all templates that include at least one of the publishing fields and save them to the input_templates array
             $data = $this->wire('modules')->getConfig($this);
@@ -272,7 +273,7 @@
          */
         protected function hideInputfield(HookEvent $event): void
         {
-            if (!$this->parent_pages->count) {
+            if (!$this->parent_pages || !$this->parent_pages->count) {
                 $wrapper = $event->return;
 
                 // remove the move to parent option from select field
@@ -348,35 +349,66 @@
          */
         protected function changeStatusPageTree(HookEvent $event): void
         {
-            $action = $event->arguments(0);
-            $this->wire('session')->set('action', $action);
+            // remember the action and the page only for the current request (no session!)
+            // ProcessPageList::ajaxAction() has already checked that GET id and POST id are identical
+            $this->pageListAction = (string)$event->arguments(0);
+            $this->pageListActionPageId = (int)$this->wire('input')->post->int('id');
+        }
+
+        /**
+         * Check if the given page is the page of a publish/unpublish action inside the page tree
+         * The stored action will be reset afterwards, so it can only be used once
+         * @param \ProcessWire\Page $page
+         * @param string $action
+         * @return bool
+         */
+        protected function isPageListAction(Page $page, string $action): bool
+        {
+            if ($this->pageListAction !== $action || !$this->pageListActionPageId || $page->id !== $this->pageListActionPageId) {
+                return false;
+            }
+            $this->pageListAction = '';
+            $this->pageListActionPageId = 0;
+            return true;
+        }
+
+        /**
+         * Get the publishing code (-1, 0, 1) of a page according to its stored date values
+         * @param \ProcessWire\Page $page
+         * @return int
+         * @throws \ProcessWire\WireException
+         * @throws \ProcessWire\WirePermissionException
+         */
+        protected function getPagePublishingCode(Page $page): int
+        {
+            if (!$page->id || !$page->hasField('jk_publish_from') || !$page->hasField('jk_publish_until')) {
+                return 0;
+            }
+            return $this->getPublishingCode($page->getUnformatted('jk_publish_from'), $page->getUnformatted('jk_publish_until'));
         }
 
         /**
          * Prevent the change of unpublishing to publish of a page if the conditions to publish the page are not
          * fullfilled. If the page could not be published, a modal window including more information will be displayed.
+         * Runs only on the page that has been published via the page tree.
+         * @param \ProcessWire\HookEvent $event
          * @return void
          * @throws \ProcessWire\WireException
          * @throws \ProcessWire\WirePermissionException
          */
-        protected function preventSavingPublishStatus(): void
+        protected function preventSavingPublishStatus(HookEvent $event): void
         {
+            $page = $event->arguments(0);
+            if (!$this->isPageListAction($page, 'pub')) return;
 
-            $error_msg = [];
-
-            $not_allowed_text = $this->_('The publishing settings of this page do not allow you to manually publish this page now.');
-            $end_text = $this->_('Otherwise, the page cannot be published immediately.');
-            $status_remains_text = $this->_('The status of this page remains "unpublished" at the moment.');
-
-            if (($this->wire('session')->get('action') == 'pub') && ($this->publish_code < 0)) {
-                $error_msg[] = $not_allowed_text;
-                $error_msg[] = $this->_('To publish the page, go to the edit page, make your changes to the date fields and then publish the page.');
-                $error_msg[] = $end_text;
-                $error_msg[] = $status_remains_text;
-                $error_msg = implode(' ', $error_msg);
-                $this->wire('session')->remove('action');
-                throw new WireException($error_msg);
-
+            if ($this->getPagePublishingCode($page) < 0) {
+                $error_msg = [
+                    $this->_('The publishing settings of this page do not allow you to manually publish this page now.'),
+                    $this->_('To publish the page, go to the edit page, make your changes to the date fields and then publish the page.'),
+                    $this->_('Otherwise, the page cannot be published immediately.'),
+                    $this->_('The status of this page remains "unpublished" at the moment.')
+                ];
+                throw new WireException(implode(' ', $error_msg));
             }
         }
 
@@ -384,29 +416,26 @@
          * Prevent the change of publishing to unpublish if the conditions to unpublish the page are not
          * fullfilled. If the page could not be unpublished, a modal window including more information will be
          * displayed.
+         * Runs only on the page that has been unpublished via the page tree.
+         * @param \ProcessWire\HookEvent $event
          * @return void
          * @throws \ProcessWire\WireException
          * @throws \ProcessWire\WirePermissionException
          */
-        protected function preventSavingUnpublishStatus(): void
+        protected function preventSavingUnpublishStatus(HookEvent $event): void
         {
+            $page = $event->arguments(0);
+            if (!$this->isPageListAction($page, 'unpub')) return;
 
-            $error_msg = [];
-
-            $not_allowed_text = $this->_('The publishing settings of this page do not allow you to manually unpublish this page now.');
-            $end_text = $this->_('Otherwise, the page cannot be unpublished immediately.');
-            $status_remains_text = $this->_('The status of this page remains "published" at the moment.');
-
-            if (($this->wire('session')->get('action') == 'unpub') && ($this->publish_code > 0)) {
-                $error_msg[] = $not_allowed_text;
-                $error_msg[] = $this->_('To unpublish the page, go to the edit page, make your changes to the date fields and the status field, and then unpublish the page.');
-                $error_msg[] = $end_text;
-                $error_msg[] = $status_remains_text;
-                $error_msg = implode(' ', $error_msg);
-                $this->wire('session')->remove('action');
-                throw new WireException($error_msg);
+            if ($this->getPagePublishingCode($page) > 0) {
+                $error_msg = [
+                    $this->_('The publishing settings of this page do not allow you to manually unpublish this page now.'),
+                    $this->_('To unpublish the page, go to the edit page, make your changes to the date fields and the status field, and then unpublish the page.'),
+                    $this->_('Otherwise, the page cannot be unpublished immediately.'),
+                    $this->_('The status of this page remains "published" at the moment.')
+                ];
+                throw new WireException(implode(' ', $error_msg));
             }
-
         }
 
         /**
@@ -595,7 +624,7 @@
 
             // apply the status change only to the page that is currently edited in the page editor
             // and not to other pages saved during the same request (repeater items, pages saved by the cron job, ...)
-            $edited_page_id = (int)$input->post('id') ?: (int)$input->get('id');
+            $edited_page_id = (int)$input->post->int('id') ?: (int)$input->get->int('id');
             if (!$edited_page_id || $page->id !== $edited_page_id) return;
             if (!$page->hasField('jk_publish_from') && !$page->hasField('jk_publish_until')) return;
 

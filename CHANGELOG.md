@@ -186,3 +186,11 @@ The status change after validating the date fields was applied to every page sav
 - **Installation after incomplete uninstallation fixed**
 
 If one of the fields (e.g. the fieldset closer "jk_publish_open_END") was left over from a previous uninstallation, the installation failed with "Field may not be named ... because it is already used by another field". The installation now checks every field separately and reuses existing fields. The check for the field "jk_move_child" used a wrong field name ("jk_show_parent") and has been corrected. The uninstallation now removes the fields from all templates (not only from the templates stored in the module config), skips missing fields and does not stop if one field cannot be deleted.
+
+- **Page tree publish/unpublish check fixed**
+
+The check whether a page may be published or unpublished via the buttons in the page tree used the page from the URL parameter "id" and a session value, which was only removed if the action was denied. A leftover session value could block later publishing actions (e.g. in the page editor or by the cron job). Now the action is only stored for the current request and the check uses the dates of the page that is actually published or unpublished.
+
+- **URL parameter "id" sanitized**
+
+The URL parameter "id" was passed unsanitized as a selector to $pages->get() on every request (also on the frontend). It is now sanitized as an integer.
