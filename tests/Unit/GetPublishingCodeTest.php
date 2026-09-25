@@ -1,7 +1,7 @@
 <?php
     declare(strict_types=1);
 
-    namespace JkPublishPages\Tests;
+    namespace JkPublishPages\Tests\Unit;
 
     use PHPUnit\Framework\Attributes\DataProvider;
     use PHPUnit\Framework\TestCase;

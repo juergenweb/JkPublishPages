@@ -1135,6 +1135,20 @@
          */
         protected function runJkPublishPages(): void
         {
+            $now = time();
+            foreach ($this->findCandidates() as $p) {
+                $this->processPage($p, $now);
+            }
+        }
+
+        /**
+         * Find all pages that may need a status change or an action after the publication has ended
+         * The selectors only pre-filter the candidates - the final decision is made by processPage()
+         * @return PageArray
+         * @throws WireException
+         */
+        protected function findCandidates(): PageArray
+        {
 
             // find all templates, which have a start or an end date field
             $templates = [];
@@ -1145,7 +1159,7 @@
             }
 
             // no template contains publishing fields → nothing to do
-            if (!$templates) return;
+            if (!$templates) return $this->wire('pages')->newPageArray();
 
             // create general selector for unpublished and published pages
             $selectors = 'templates_id=' . implode('|', $templates) . ','; // only pages with publishing fields
@@ -1170,11 +1184,7 @@
             // (e.g. pages that have been unpublished manually before the end date) → trash, move or delete them too
             $candidates->import($this->wire('pages')->find($selectors . 'status=unpublished,jk_publish_until<now,jk_action_after=2|3|4'));
 
-            $now = time();
-            foreach ($candidates as $p) {
-                $this->processPage($p, $now);
-            }
-
+            return $candidates;
         }
 
         /**

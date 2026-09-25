@@ -224,3 +224,9 @@ In addition, the new parent page (also in the cron job) must not be part of the 
 The decision logic of the cron job (publish, unpublish, trash, move, delete) has been moved to the new class JkPublishPagesRules, which has no dependency on ProcessWire. The cron job now decides for every page via this class, so the tested logic is exactly the logic that runs. The boundaries are consistent now: a page is inside the publication period if start <= now <= end, the publication has ended if end < now (before, a page with a start date exactly at the current time could be published and unpublished by the same cron run).
 
 PHPUnit tests can be run with "composer install" and "composer test" (requires PHP 8.1+ for PHPUnit 10/11).
+
+- **Integration tests**
+
+New integration tests run against the ProcessWire installation the module is installed in ("composer test:integration"). They create their own test template, test pages, a test role and a test user and remove everything afterwards. The cron job itself is never executed (it would process all pages of the site): the tests only use findCandidates() (read only) and processPage() on their own test pages. The tests cover publishing, unpublishing, trash, move and delete, hidden pages, the cron job running as guest, and the permission checks when saving a page. Another installation can be used via the environment variable JKPP_PW_INDEX.
+
+The cron job has been split into findCandidates() and processPage() for this purpose.

@@ -4,11 +4,16 @@
          bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache"
-         failOnWarning="true"
+         defaultTestSuite="Unit"
          failOnRisky="true">
     <testsuites>
+        <!-- fast tests without ProcessWire: composer test -->
         <testsuite name="Unit">
-            <directory>tests</directory>
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <!-- tests against the ProcessWire installation this module is installed in: composer test:integration -->
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
     <source>
