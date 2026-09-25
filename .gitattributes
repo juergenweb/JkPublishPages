@@ -1,0 +1,13 @@
+# Files and folders that are not included in release archives
+# (GitHub "Download ZIP", release archives, git archive, Composer dist packages)
+
+# Tests
+/tests export-ignore
+/phpunit.xml export-ignore
+/.phpunit.cache export-ignore
+
+# Images (only used in the README on GitHub)
+/images export-ignore
+
+# Composer dependencies
+/vendor export-ignore
