@@ -194,3 +194,19 @@ The check whether a page may be published or unpublished via the buttons in the 
 - **URL parameter "id" sanitized**
 
 The URL parameter "id" was passed unsanitized as a selector to $pages->get() on every request (also on the frontend). It is now sanitized as an integer.
+
+- **Performance: no more database writes and page queries on every request**
+
+The module config was saved to the database on every request (also on the frontend) and all possible new parent pages were loaded on every request with an "id" URL parameter. Now the template selection is only processed when the module config is saved, and the parent pages are only loaded on the page edit screen when they are needed. The JS and CSS files are only added in the admin, and the file modification time is used for cache busting instead of the current time (which prevented browser caching).
+
+- **Fields were added/removed when saving the config of ANY module**
+
+The hook for adding and removing the publishing fields ran on the config screen of every module. Now it only runs when the config of this module is saved, only templates offered in the module config are changed (no system templates, no homepage template), and only changed templates are saved. The checkboxes now show the templates that actually contain the publishing fields.
+
+- **Translation of the select options: prepared statement**
+
+The translated titles of the options of "jk_action_after" were inserted directly into the SQL string, so a translation containing quotes broke the query. Now a prepared statement is used and the options are identified by their option id instead of their title.
+
+- **Actions after the end of publication**
+
+The action after the end of publication (trash, move, delete) was also executed on published pages whose start date was still in the future. Now it will only be executed if the end date has been reached - otherwise the page will only be unpublished. In addition, the action is now also executed on pages that have been unpublished manually before the end date.

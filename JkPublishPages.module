@@ -32,7 +32,8 @@
 
         protected array $templates = []; // array of all templates which contain at least one of the module fields
         protected array $actions = []; // array that holds all possible actions after publishing has ended
-        protected PageArray|null $parent_pages;
+        protected PageArray|null $parent_pages = null; // allowed new parent pages - will be loaded only if needed
+        protected bool $parent_pages_loaded = false;
 
         protected string $pageListAction = ''; // publish action (pub/unpub) triggered inside the page tree during the current request
         protected int $pageListActionPageId = 0; // id of the page the page tree action belongs to
@@ -141,16 +142,6 @@
             $page_id = (int)$this->wire('input')->get->int('id');
             $this->page = ($page_id > 0) ? $this->wire('pages')->get($page_id) : new NullPage();
 
-            // find all templates that include at least one of the publishing fields and save them to the input_templates array
-            $data = $this->wire('modules')->getConfig($this);
-            $data['input_templates'] = $this->getTemplatesWithModuleFields();
-            wire('modules')->saveConfig($this, $data);
-
-            //Add JS and CSS file
-            $version = $this->getModuleInfo()['version'] . '-' . time();
-            $this->config->scripts->add($this->config->urls->{$this->className()} . 'JkPublishPages.js?v=' . $version);
-            $this->config->styles->add($this->config->urls->{$this->className()} . 'JkPublishPages.css?v=' . $version);
-
             // Hook for the Cron job
             $this->addHook("LazyCron::$this->input_croninterval", $this, 'runJkPublishPages');
 
@@ -162,7 +153,7 @@
 
             // Hook to add status text below the fieldset label
             $this->addHookAfter('InputfieldFieldsetOpen::render', $this, 'addStatusText');
-            $this->addHookBefore('ProcessModule::executeEdit', $this, 'addRemovePublishingFields');
+            $this->addHookAfter('Modules::saveConfig', $this, 'addRemovePublishingFields');
             $this->addHookAfter('ProcessLanguage::processCSV', $this, 'addTranslationsToFields');
             $this->addHookAfter('InputfieldPage::getSelectablePages', $this, 'setPageArrayNew');
             $this->addHookAfter('InputfieldCheckboxes::render', $this, 'addToggle');
@@ -178,8 +169,41 @@
             // Hook to manipulate title in the admin
             $this->addHookAfter('ProcessPageEdit::execute', $this, 'extendTitleTag');
 
-            $this->parent_pages = $this->getParentPages();
+        }
 
+        /**
+         * Add the JS and CSS files - only in the admin, not on the frontend
+         * @return void
+         * @throws WireException
+         */
+        public function ready(): void
+        {
+            $page = $this->wire('page');
+            if (!$page || !$page->id || !$page->template || $page->template->name !== 'admin') return;
+
+            $path = $this->config->paths->{$this->className()};
+            $url = $this->config->urls->{$this->className()};
+            $version = $this->getModuleInfo()['version'];
+
+            // use the file modification time for cache busting instead of time() (which disables browser caching)
+            foreach (['JkPublishPages.js' => 'scripts', 'JkPublishPages.css' => 'styles'] as $file => $type) {
+                $mtime = is_file($path . $file) ? filemtime($path . $file) : 0;
+                $this->config->$type->add($url . $file . '?v=' . $version . '-' . $mtime);
+            }
+        }
+
+        /**
+         * Get the allowed new parent pages of the current page - loaded only once and only if needed
+         * (only on the page edit screen, not on every request)
+         * @return PageArray|null
+         */
+        protected function getParentPagesCached(): PageArray|null
+        {
+            if (!$this->parent_pages_loaded) {
+                $this->parent_pages = $this->getParentPages();
+                $this->parent_pages_loaded = true;
+            }
+            return $this->parent_pages;
         }
 
         /**
@@ -209,7 +233,7 @@
             if ($this->page->id > 0) {
 
                 // check if the template of the given page has a publishing field inside, otherwise return a empty PageArray
-                if (!in_array($this->page->template->id, array_keys($this->input_templates)) || !$this->page->hasField('jk_move_child')) {
+                if (!$this->page->hasField('jk_move_child')) {
                     return new PageArray();
                 }
 
@@ -237,7 +261,8 @@
                 $templates = $templates->implode('|', 'id');
                 // create the array that consists of the ids of all not allowed pages
                 $exclude_pages = implode('|', [$this->page->id, $this->page->parent_id, 1]);
-                return wire('pages')->find('id!=' . $exclude_pages . ',templates_id=' . $templates);
+                // exclude the page itself, its current parent, the homepage and all children of the page
+                return wire('pages')->find('id!=' . $exclude_pages . ',has_parent!=' . $this->page->id . ',templates_id=' . $templates);
             } else {
                 return null;
             }
@@ -256,9 +281,10 @@
             $field = $event->object;
             if ($field->name == 'jk_move_child') {
 
-                if (($this->parent_pages) && ($this->parent_pages->count)) {
+                $parent_pages = $this->getParentPagesCached();
+                if (($parent_pages) && ($parent_pages->count)) {
 
-                    $event->return = $this->parent_pages;
+                    $event->return = $parent_pages;
                 }
             }
         }
@@ -273,7 +299,8 @@
          */
         protected function hideInputfield(HookEvent $event): void
         {
-            if (!$this->parent_pages || !$this->parent_pages->count) {
+            $parent_pages = $this->getParentPagesCached();
+            if (!$parent_pages || !$parent_pages->count) {
                 $wrapper = $event->return;
 
                 // remove the move to parent option from select field
@@ -1098,6 +1125,10 @@
             // only pages which are unpublished at the moment
             $pagesToPublish = $this->wire('pages')->find($selectors . 'status=unpublished,(jk_publish_from<=now, jk_publish_until>=now),(jk_publish_from<=now, jk_publish_until=)');
 
+            // unpublished pages whose publication has ended and which have an action other than "unpublish"
+            // (e.g. pages that have been unpublished manually before the end date) → trash, move or delete them too
+            $pagesExpired = $this->wire('pages')->find($selectors . 'status=unpublished,jk_publish_until<=now,jk_action_after=2|3|4,(jk_publish_from=),(jk_publish_from<=now)');
+
             // publish pages
             foreach ($pagesToPublish as $p) {
                 try {
@@ -1111,58 +1142,99 @@
                 }
             }
 
-            // unpublish, trash, move or delete pages
+            // unpublish published pages - the action after publication (trash, move, delete) will only be executed
+            // if the end date has been reached, not if the start date is in the future
             foreach ($pagesToUnpublish as $p) {
-                try {
-                    $p->of(false);
-
-                    switch ($this->getActionAfter($p)) {
-                        case 2: // move to trash (Pages::trash() saves the page itself)
-                            $this->wire('pages')->trash($p);
-                            $this->logCron($p, 'moved to trash');
-                            break;
-
-                        case 3: // move page under a new parent
-                            $new_parent = $this->getNewParent($p);
-                            if (!$new_parent) {
-                                // no valid parent page selected → unpublish the page instead
-                                $p->addStatus(Page::statusUnpublished);
-                                $p->save();
-                                $this->logCron($p, 'unpublished (no valid new parent page selected)');
-                                break;
-                            }
-                            $p->jk_publish_until = '';
-                            $p->jk_action_after = 1;
-                            $p->parent = $new_parent;
-                            $p->save();
-                            $this->logCron($p, 'moved to new parent ' . $new_parent->path);
-                            break;
-
-                        case 4: // delete permanently (no save afterwards - the page does not exist anymore)
-                            if ($p->numChildren) {
-                                // do not delete child pages silently → unpublish the page instead
-                                $p->addStatus(Page::statusUnpublished);
-                                $p->save();
-                                $this->logCron($p, 'unpublished instead of deleted, because the page has children');
-                                break;
-                            }
-                            $path = $p->path;
-                            $id = $p->id;
-                            $this->wire('pages')->delete($p);
-                            $this->wire('log')->save('jkpublishpages', "Page $id ($path) deleted permanently");
-                            break;
-
-                        default: // set page status to unpublished
-                            $p->addStatus(Page::statusUnpublished);
-                            $p->save();
-                            $this->logCron($p, 'unpublished');
-                    }
-                } catch (\Throwable $e) {
-                    // an error on one page must not stop the processing of all other pages
-                    $this->logCron($p, 'ERROR after end of publication: ' . $e->getMessage());
-                }
+                $this->endPublication($p, $this->publicationHasEnded($p));
             }
 
+            // trash, move or delete unpublished pages whose publication has ended
+            foreach ($pagesExpired as $p) {
+                $this->endPublication($p, true);
+            }
+
+        }
+
+        /**
+         * Check if the end date of the publication of a page has been reached
+         * @param \ProcessWire\Page $p
+         * @return bool
+         */
+        protected function publicationHasEnded(Page $p): bool
+        {
+            if (!$p->hasField('jk_publish_until')) return false;
+            $until = (int)$p->getUnformatted('jk_publish_until');
+            return $until > 0 && $until <= time();
+        }
+
+        /**
+         * Unpublish a page or execute the action after the publication has ended (trash, move, delete)
+         * @param \ProcessWire\Page $p
+         * @param bool $ended true if the end date has been reached → execute the selected action, otherwise only unpublish
+         * @return void
+         */
+        protected function endPublication(Page $p, bool $ended): void
+        {
+            try {
+                $p->of(false);
+
+                $action = $ended ? $this->getActionAfter($p) : 1;
+
+                switch ($action) {
+                    case 2: // move to trash (Pages::trash() saves the page itself)
+                        $this->wire('pages')->trash($p);
+                        $this->logCron($p, 'moved to trash');
+                        break;
+
+                    case 3: // move page under a new parent (the status of the page will not be changed)
+                        $new_parent = $this->getNewParent($p);
+                        if (!$new_parent) {
+                            // no valid parent page selected → unpublish the page instead
+                            $this->unpublishPage($p, 'unpublished (no valid new parent page selected)');
+                            break;
+                        }
+                        $p->jk_publish_until = '';
+                        $p->jk_action_after = 1;
+                        $p->parent = $new_parent;
+                        $p->save();
+                        $this->logCron($p, 'moved to new parent ' . $new_parent->path);
+                        break;
+
+                    case 4: // delete permanently (no save afterwards - the page does not exist anymore)
+                        if ($p->numChildren) {
+                            // do not delete child pages silently → unpublish the page instead
+                            $this->unpublishPage($p, 'unpublished instead of deleted, because the page has children');
+                            break;
+                        }
+                        $path = $p->path;
+                        $id = $p->id;
+                        $this->wire('pages')->delete($p);
+                        $this->wire('log')->save('jkpublishpages', "Page $id ($path) deleted permanently");
+                        break;
+
+                    default: // set page status to unpublished
+                        $this->unpublishPage($p, 'unpublished');
+                }
+            } catch (\Throwable $e) {
+                // an error on one page must not stop the processing of all other pages
+                $this->logCron($p, 'ERROR after end of publication: ' . $e->getMessage());
+            }
+        }
+
+        /**
+         * Unpublish a page - pages which are already unpublished will not be saved again (and not logged on every
+         * cron run)
+         * @param \ProcessWire\Page $p
+         * @param string $log_msg
+         * @return void
+         * @throws WireException
+         */
+        protected function unpublishPage(Page $p, string $log_msg): void
+        {
+            if ($p->isUnpublished()) return;
+            $p->addStatus(Page::statusUnpublished);
+            $p->save();
+            $this->logCron($p, $log_msg);
         }
 
         /**
@@ -1229,10 +1301,17 @@
             if (!is_null($templates)) {
                 foreach ($templates as $template) {
                     $currentTempl = wire('templates')->get($template);
+                    if (!$currentTempl) continue; // template does not exist (anymore)
+
+                    $changed = false;
                     foreach ($this->moduleFields as $fieldName) {
-                        $currentTempl->fieldgroup->remove($fieldName);
+                        if ($currentTempl->hasField($fieldName)) {
+                            $currentTempl->fieldgroup->remove($fieldName);
+                            $changed = true;
+                        }
                     }
-                    $currentTempl->fieldgroup->save();
+                    // save only templates that have been changed
+                    if ($changed) $currentTempl->fieldgroup->save();
                 }
             }
         }
@@ -1263,24 +1342,32 @@
         }
 
         /**
-         * Add or remove publishing fields from templates after saving the module config page
+         * Add or remove publishing fields from templates after the config of THIS module has been saved
          * If a template is not checked in the module config, then all publishing fields will be removed from it,
          * otherwise they will be added to the template
+         * Only templates, which are offered as checkboxes in the module config, will be changed (no system templates,
+         * no homepage template)
+         * @param HookEvent $event
          * @return void
          * @throws WireException
          * @throws WirePermissionException
          */
-        protected function addRemovePublishingFields(): void
+        protected function addRemovePublishingFields(HookEvent $event): void
         {
-            $all_templates = [];
-            foreach ($this->wire('templates') as $template) {
-                $all_templates[$template->id] = $template->name;
-            }
-            if ($this->input_templates) {
-                $delete_templates = array_diff($all_templates, $this->input_templates);
-                $this->addFields($this->input_templates);
-                $this->removeFields($delete_templates);
-            }
+            // run only if the config of this module has been saved
+            $class = $event->arguments(0);
+            if (wireClassName($class, false) !== $this->className()) return;
+
+            // run only if the config data contains the template selection (e.g. not during the installation)
+            $data = $event->arguments(1);
+            if (!is_array($data) || !array_key_exists('input_templates', $data)) return;
+
+            $selectable = $this->getTemplates();
+            $selected = is_array($data['input_templates']) ? array_values($data['input_templates']) : [];
+            $selected = array_values(array_intersect($selected, $selectable));
+
+            $this->addFields($selected);
+            $this->removeFields(array_values(array_diff($selectable, $selected)));
         }
 
         /**
@@ -1319,27 +1406,29 @@
                     //get the text-domain
                     $textdomain = $translation->objectToTextdomain($this);
 
-                    foreach ($this->actions as $action) {
+                    // column name: "title" for the default language, "title{language id}" for all other languages
+                    $column = 'title';
+                    if ($language->id != $this->wire('languages')->getDefault()->id) {
+                        $column .= (int)$language->id;
+                    }
 
-                        $title = $this->wire('sanitizer')->string($translation->getTranslation($textdomain, $action));
+                    // use a prepared statement with bound values - the translated titles must never be inserted
+                    // directly into the SQL string (quotes inside a translation would break the query)
+                    // the options are identified by their option id (1-4, the keys of the actions array) and not
+                    // by their title, because the title of the default language could have been translated already
+                    $query = 'UPDATE ' . SelectableOptionManager::optionsTable . ' SET `' . $column . '`=:title WHERE fields_id=:fields_id AND option_id=:option_id';
 
-                        $table_name = 'fieldtype_options';
-
-                        // check if language is the default language
-                        $id = '';
-                        if ($language->id != $this->wire('languages')->getDefault()->id) {
-                            $id = $language->id;
+                    try {
+                        $statement = $this->wire('database')->prepare($query);
+                        foreach ($this->actions as $option_id => $action) {
+                            $title = $this->wire('sanitizer')->text($translation->getTranslation($textdomain, $action));
+                            $statement->bindValue(':title', $title);
+                            $statement->bindValue(':fields_id', (int)$f->id, \PDO::PARAM_INT);
+                            $statement->bindValue(':option_id', (int)$option_id, \PDO::PARAM_INT);
+                            $this->wire('database')->execute($statement);
                         }
-
-                        $values = 'title' . $id . ' = "' . $title . '"';
-                        $where = 'fields_id="' . $f->id . '" AND title="' . $action . '"';
-                        $query = 'UPDATE ' . $table_name . ' SET ' . $values . ' WHERE ' . $where;
-                        try {
-                            $insert = $this->wire('database')->prepare($query);
-                            $this->wire('database')->execute($insert);
-                        } catch (Exception $e) {
-                            $this->trackException($e, false, true);
-                        }
+                    } catch (Exception $e) {
+                        $this->trackException($e, false, true);
                     }
                 }
             }
@@ -1439,10 +1528,11 @@
             $f->attr('name', 'input_templates');
 
             foreach ($this->getTemplates() as $templateName) {
-                $checked = ($this->input_templates != null && in_array($templateName,
-                        $this->input_templates)) ? 'checked' : '';
-                $f->addOption($templateName, $templateName, ['checked' => $checked]);
+                $f->addOption($templateName, $templateName);
             }
+            // check all templates which contain the publishing fields at the moment
+            $current_templates = array_values($this->getTemplatesWithModuleFields());
+            $f->attr('value', $current_templates);
             $f->description = $this->_('If a template is checked, than the publishing fields are present in this template or will be added to this template after pressing the save button. On all other templates these fields are not present or will be removed after pressing the save button.');
             $f->notes = $this->_('Please select all templates where you want to add the publishing fields and press the save button afterwards. Only to mention: The homepage template is excluded!');
             $inputfields->append($f);
