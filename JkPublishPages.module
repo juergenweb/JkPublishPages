@@ -35,6 +35,7 @@
         protected PageArray|null $parent_pages = null; // allowed new parent pages - will be loaded only if needed
         protected bool $parent_pages_loaded = false;
 
+        protected string $statusToSet = ''; // status (pub/unpub) determined by validateDates() for the edited page - never taken from user input
         protected string $pageListAction = ''; // publish action (pub/unpub) triggered inside the page tree during the current request
         protected int $pageListActionPageId = 0; // id of the page the page tree action belongs to
         protected Page $page; // the current page, the inputfield lives on
@@ -164,6 +165,7 @@
             $this->addHookBefore('ProcessPageList::ajaxAction', $this, 'changeStatusPageTree');
             $this->addHookBefore('Pages::publishReady', $this, 'preventSavingPublishStatus');
             $this->addHookBefore('Pages::unpublishReady', $this, 'preventSavingUnpublishStatus');
+            $this->addHookBefore('Pages::saveReady', $this, 'checkPublishingPermissions');
             $this->addHookBefore('Pages::saveReady', $this, 'changeStatus');
 
             // Hook to manipulate title in the admin
@@ -635,7 +637,23 @@
         }
 
         /**
+         * Check if the given page is the page that is currently edited in the page editor
+         * (and not another page saved during the same request, e.g. repeater items or pages saved by the cron job)
+         * @param \ProcessWire\Page $page
+         * @return bool
+         * @throws \ProcessWire\WireException
+         */
+        protected function isEditedPage(Page $page): bool
+        {
+            $input = $this->wire('input');
+            $edited_page_id = (int)$input->post->int('id') ?: (int)$input->get->int('id');
+            if (!$edited_page_id || $page->id !== $edited_page_id) return false;
+            return $page->hasField('jk_publish_from') || $page->hasField('jk_publish_until');
+        }
+
+        /**
          * Change the status of the page according to the publishing settings
+         * The status is taken from the internal property set by validateDates() - never from user input
          * @param \ProcessWire\HookEvent $event
          * @return void
          * @throws \ProcessWire\WireException
@@ -643,30 +661,89 @@
          */
         protected function changeStatus(HookEvent $event): void
         {
-
             $page = $event->arguments(0);
-            $input = $this->wire('input');
 
-            if (!$input->post['changestatus']) return;
+            if ($this->statusToSet === '') return;
+            if (!$this->isEditedPage($page)) return;
 
-            // apply the status change only to the page that is currently edited in the page editor
-            // and not to other pages saved during the same request (repeater items, pages saved by the cron job, ...)
-            $edited_page_id = (int)$input->post->int('id') ?: (int)$input->get->int('id');
-            if (!$edited_page_id || $page->id !== $edited_page_id) return;
-            if (!$page->hasField('jk_publish_from') && !$page->hasField('jk_publish_until')) return;
+            $status = $this->statusToSet;
+            $this->statusToSet = ''; // use only once
 
-            if ($input->post['changestatus']) {
+            $is_unpublished = $page->isUnpublished();
+            $change = ($status === 'unpub' && !$is_unpublished) || ($status === 'pub' && $is_unpublished);
+            if (!$change) return;
 
-                $status = $input->post['changestatus'];
+            // changing the publish status requires the page-publish permission
+            // (no error message: if the stored dates require a status change, the cron job will do it)
+            if (!$page->publishable()) return;
 
-                if ($status === 'unpub') {
-                    $page->setStatus('unpublished');
-                } else {
-                    $page->removeStatus('unpublished');
+            if ($status === 'unpub') {
+                $page->addStatus(Page::statusUnpublished); // addStatus instead of setStatus - keep all other status flags
+            } else {
+                $page->removeStatus(Page::statusUnpublished);
+            }
+        }
+
+        /**
+         * Check if the current user is allowed to change the publishing settings of the edited page
+         * Without this check, a user could publish, trash, delete or move a page (via the cron job) without having
+         * the required permission. Not allowed changes will be reverted to the stored values.
+         * @param \ProcessWire\HookEvent $event
+         * @return void
+         * @throws \ProcessWire\WireException
+         * @throws \ProcessWire\WirePermissionException
+         */
+        protected function checkPublishingPermissions(HookEvent $event): void
+        {
+            $page = $event->arguments(0);
+
+            if (!$page->id || !$this->isEditedPage($page)) return;
+            if ($this->wire('user')->isSuperuser()) return;
+
+            $date_fields = array_filter(['jk_publish_from', 'jk_publish_until'], fn($name) => $page->hasField($name));
+            $action_fields = array_filter(['jk_action_after', 'jk_move_child'], fn($name) => $page->hasField($name));
+
+            $dates_changed = false;
+            foreach ($date_fields as $name) {
+                if ($page->isChanged($name)) $dates_changed = true;
+            }
+            $action_changed = false;
+            foreach ($action_fields as $name) {
+                if ($page->isChanged($name)) $action_changed = true;
+            }
+            if (!$dates_changed && !$action_changed) return;
+
+            $stored = $this->wire('pages')->getFresh($page->id);
+            if (!$stored->id) return;
+
+            // 1) start and end date: scheduling a publication requires the page-publish permission
+            if ($dates_changed && !$page->publishable()) {
+                foreach ($date_fields as $name) {
+                    $page->set($name, $stored->getUnformatted($name));
                 }
-                $event->arguments(0, $page);
+                $this->statusToSet = ''; // no status change based on the reverted dates
+                $this->error($this->_('You do not have the permission to publish or unpublish this page, so the publishing dates have not been changed.'));
             }
 
+            // 2) action after the publication has ended
+            if ($action_changed) {
+                $allowed = true;
+                $action = $this->getActionAfter($page);
+                if ($action === 2) {
+                    $allowed = $page->trashable();
+                } else if ($action === 4) {
+                    $allowed = $page->deleteable();
+                } else if ($action === 3) {
+                    $new_parent = $this->getNewParent($page);
+                    $allowed = $new_parent && $page->moveable($new_parent);
+                }
+                if (!$allowed) {
+                    foreach ($action_fields as $name) {
+                        $page->set($name, $stored->getUnformatted($name));
+                    }
+                    $this->error($this->_('You do not have the permission for the selected action after the publication has ended (move to trash, move or delete), so this setting has not been changed.'));
+                }
+            }
         }
 
         /**
@@ -854,7 +931,8 @@
                     $status = ($wanted_action == 1) ? 'pub' : 'unpub';
                 }
 
-                $this->wire('input')->post['changestatus'] = $status;
+                // store the status internally - not as POST parameter, which could be manipulated by the user
+                $this->statusToSet = $status;
 
                 // output error message if present
                 if ($msg) {
@@ -1274,6 +1352,15 @@
 
             // the new parent must not be the page itself, one of its children or a page in the trash
             if ($value->id === $p->id || $value->parents->has($p) || $value->isTrash()) return null;
+
+            // the new parent must not be a page of the admin tree or use a system template
+            if ($value->rootParent->id === (int)$this->wire('config')->adminRootPageID) return null;
+            if (!$value->template || ($value->template->flags & Template::flagSystem)) return null;
+
+            // the family settings of both templates must allow this parent/child combination
+            if ($value->template->noChildren) return null;
+            if ($value->template->childTemplates && !in_array($p->template->id, $value->template->childTemplates)) return null;
+            if ($p->template->parentTemplates && !in_array($value->template->id, $p->template->parentTemplates)) return null;
 
             return $value;
         }

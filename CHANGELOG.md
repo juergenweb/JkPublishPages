@@ -210,3 +210,11 @@ The translated titles of the options of "jk_action_after" were inserted directly
 - **Actions after the end of publication**
 
 The action after the end of publication (trash, move, delete) was also executed on published pages whose start date was still in the future. Now it will only be executed if the end date has been reached - otherwise the page will only be unpublished. In addition, the action is now also executed on pages that have been unpublished manually before the end date.
+
+- **Security: permission checks for the publishing settings**
+
+Users without the required permissions could use the publishing fields to publish, trash, delete or move a page (immediately or via the cron job). Now the permissions of the current user are checked when saving a page: changing the start or end date requires the page-publish permission, the action "move to trash" requires page-trash, "delete permanently" requires page-delete and "move page" requires the permission to move the page to the selected parent. Not allowed changes are reverted to the stored values and an error message is displayed. Superusers are not affected.
+
+The status determined by the date validation was passed via the POST parameter "changestatus", which could be manipulated by the user. It is now stored internally. The status change also no longer overwrites all other status flags of a page (addStatus instead of setStatus).
+
+In addition, the new parent page (also in the cron job) must not be part of the admin tree or use a system template, and the family settings of both templates must allow this parent/child combination.
